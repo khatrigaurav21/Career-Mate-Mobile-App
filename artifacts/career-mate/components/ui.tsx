@@ -614,12 +614,20 @@ export function ErrorNotice({
   );
 }
 
-export function ScoreRing({ score, size = 74 }: { score: number | null; size?: number }) {
+export function ScoreRing({
+  score,
+  size = 74,
+  mutedColor,
+}: {
+  score: number | null;
+  size?: number;
+  mutedColor?: string;
+}) {
   const colors = useColors();
   const reducedMotion = useReducedMotion();
   const animatedScore = useSharedValue(score ?? 0);
   const [displayScore, setDisplayScore] = React.useState<number | null>(score === null ? null : 0);
-  const tone = score === null ? colors.mutedForeground : score >= 4 ? colors.success : score >= 2.8 ? colors.amber : colors.destructive;
+  const tone = score === null ? colors.mutedForeground : score >= 4 ? colors.success : score >= 2.8 ? colors.warning : colors.destructive;
 
   React.useEffect(() => {
     if (score === null) {
@@ -658,7 +666,7 @@ export function ScoreRing({ score, size = 74 }: { score: number | null; size?: n
       <Text style={[styles.scoreNumber, { color: tone, fontSize: size * 0.31 }]}>
         {displayScore === null ? '—' : displayScore.toFixed(1)}
       </Text>
-      <Text style={[styles.scoreOutOf, { color: colors.mutedForeground }]}>/ 5</Text>
+      <Text style={[styles.scoreOutOf, { color: mutedColor ?? colors.mutedForeground }]}>/ 5</Text>
     </View>
   );
 }

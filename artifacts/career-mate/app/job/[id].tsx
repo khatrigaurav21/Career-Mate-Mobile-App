@@ -47,11 +47,11 @@ export default function JobDetail() {
         <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13 }}>{data.company || 'Company not listed'}</Text>
         <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 29, lineHeight: 35, letterSpacing: -0.8 }}>{data.title || 'Untitled role'}</Text>
       </View>
-      <View style={{ borderRadius: 24, backgroundColor: colors.navy, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 18 }}>
-        <ScoreRing score={data.score} size={92} />
+      <View style={{ borderRadius: 24, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 18 }}>
+        <ScoreRing score={data.score} size={92} mutedColor={colors.mutedForeground} />
         <View style={{ flex: 1, gap: 6 }}>
-          <Text style={{ color: colors.onNavy, fontFamily: 'Inter_700Bold', fontSize: 18 }}>Your fit score</Text>
-          <Text style={{ color: colors.onNavyMuted, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>{data.score === null ? 'We’re still processing this role.' : data.score >= 4 ? 'A strong match worth pursuing.' : data.score >= 2.8 ? 'There’s potential with the right positioning.' : 'Read the trade-offs before deciding.'}</Text>
+          <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 18 }}>Your fit score</Text>
+          <Text style={{ color: colors.foreground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>{data.score === null ? 'We’re still processing this role.' : data.score >= 4 ? 'A strong match worth pursuing.' : data.score >= 2.8 ? 'There’s potential with the right positioning.' : 'Read the trade-offs before deciding.'}</Text>
         </View>
       </View>
       <View style={{ gap: 11 }}>
