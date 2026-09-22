@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { router } from 'expo-router';
-import { Button, ErrorNotice, Field, IconButton, Screen, SectionEyebrow, styles } from '@/components/ui';
+import { Button, ChoiceTile, ErrorNotice, Field, PageHeader, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api, isFallbackToPaste } from '@/lib/api';
 
@@ -51,27 +51,13 @@ export default function SubmitJob() {
     }
   };
 
-  const tab = (value: SubmitMode, label: string, icon: keyof typeof import('@expo/vector-icons').Feather.glyphMap) => (
-    <Pressable onPress={() => { setMode(value); setError(''); }} style={{ flex: 1, minHeight: 86, borderRadius: 16, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 7, borderWidth: 1, borderColor: mode === value ? colors.primary : colors.border, backgroundColor: mode === value ? colors.card : colors.background }}>
-      <IconButton icon={icon} onPress={() => { setMode(value); setError(''); }} label={label} />
-      <Text style={{ color: mode === value ? colors.primary : colors.mutedForeground, fontFamily: 'Inter_600SemiBold', fontSize: 11, textAlign: 'center' }}>{label}</Text>
-    </Pressable>
-  );
-
   return (
     <Screen>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <IconButton icon="arrow-left" onPress={() => router.back()} label="Go back" />
-        <View style={{ gap: 3 }}>
-          <SectionEyebrow>New evaluation</SectionEyebrow>
-          <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 25, letterSpacing: -0.6 }}>Find the signal.</Text>
-        </View>
-      </View>
-      <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22 }}>Give us the role in whichever format you have. We’ll do the reading.</Text>
+      <PageHeader eyebrow="New evaluation" title="Find the signal" subtitle="Give us the role in whichever format you have. We’ll do the reading." onBack={() => router.back()} />
       <View style={{ flexDirection: 'row', gap: 9 }}>
-        {tab('link', 'Paste a link', 'link')}
-        {tab('paste', 'Paste text', 'edit-3')}
-        {tab('file', 'Upload file', 'upload')}
+        <ChoiceTile icon="link" label="Paste a link" caption="We’ll fetch the posting" selected={mode === 'link'} onPress={() => { setMode('link'); setError(''); }} />
+        <ChoiceTile icon="edit-3" label="Paste text" caption="Use the full description" selected={mode === 'paste'} onPress={() => { setMode('paste'); setError(''); }} />
+        <ChoiceTile icon="upload" label="Upload file" caption="PDF, DOCX, or text" selected={mode === 'file'} onPress={() => { setMode('file'); setError(''); }} />
       </View>
       {mode === 'link' && <Field label="Job posting URL" placeholder="https://company.com/jobs/role" value={url} onChangeText={setUrl} keyboardType="url" autoCapitalize="none" autoCorrect={false} />}
       {mode === 'paste' && <Field label="Job description" placeholder="Paste the full job posting here..." value={description} onChangeText={setDescription} multiline helper="The more context you share, the more useful the evaluation." />}

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { router, useLocalSearchParams } from 'expo-router';
-import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
-import { Button, ErrorNotice, Field, IconButton, Screen, SectionEyebrow, styles } from '@/components/ui';
+import { Button, ChoiceTile, ErrorNotice, Field, PageHeader, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api, isFallbackToPaste } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -77,43 +76,17 @@ export default function Setup() {
     }
   };
 
-  const tab = (value: SetupMode, label: string, icon: keyof typeof import('@expo/vector-icons').Feather.glyphMap) => (
-    <Pressable
-      onPress={() => { setMode(value); setError(''); }}
-      style={{
-        flex: 1,
-        minHeight: 86,
-        borderRadius: 16,
-        padding: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 7,
-        borderWidth: 1,
-        borderColor: mode === value ? colors.primary : colors.border,
-        backgroundColor: mode === value ? colors.card : colors.background,
-      }}
-    >
-      <IconButton icon={icon} onPress={() => { setMode(value); setError(''); }} label={label} />
-      <Text style={{ color: mode === value ? colors.primary : colors.mutedForeground, fontFamily: 'Inter_600SemiBold', fontSize: 11, textAlign: 'center' }}>{label}</Text>
-    </Pressable>
-  );
-
   return (
     <Screen contentStyle={{ paddingTop: 18 }}>
-      <View style={{ gap: 8 }}>
-        {params.redo && <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>Refresh your profile</Text>}
-        <SectionEyebrow>{params.redo ? 'Keep it current' : 'First things first'}</SectionEyebrow>
-        <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 30, lineHeight: 36, letterSpacing: -0.8 }}>
-          Bring your best work.
-        </Text>
-        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22 }}>
-          Choose the way that feels easiest. Each path creates the same Career Mate profile.
-        </Text>
-      </View>
+      <PageHeader
+        eyebrow={params.redo ? 'Keep it current' : 'First things first'}
+        title="Bring your best work"
+        subtitle="Choose the way that feels easiest. Each path creates the same Career Mate profile."
+      />
       <View style={{ flexDirection: 'row', gap: 9 }}>
-        {tab('upload', 'Upload a file', 'upload')}
-        {tab('paste', 'Paste text', 'edit-3')}
-        {tab('guided', 'Guided Q&A', 'message-circle')}
+        <ChoiceTile icon="upload" label="Upload a file" caption="Use the CV you already have" selected={mode === 'upload'} onPress={() => { setMode('upload'); setError(''); }} />
+        <ChoiceTile icon="edit-3" label="Paste text" caption="Keep your content as-is" selected={mode === 'paste'} onPress={() => { setMode('paste'); setError(''); }} />
+        <ChoiceTile icon="message-circle" label="Guided Q&A" caption="Build it from scratch" selected={mode === 'guided'} onPress={() => { setMode('guided'); setError(''); }} />
       </View>
       {mode === 'upload' && (
         <View style={[stylesCard(colors), { gap: 15 }]}>

@@ -3,13 +3,15 @@ import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { api, JobSummary } from '@/lib/api';
 import { useColors } from '@/hooks/useColors';
-import { Button, ErrorNotice, IconButton, ScoreRing, SectionEyebrow } from '@/components/ui';
+import { Button, ErrorNotice, IconButton, ScoreRing, SectionEyebrow, StatusChip } from '@/components/ui';
 
 export default function Pipeline() {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const pipeline = useQuery({ queryKey: ['pipeline'], queryFn: api.getPipeline, enabled: !!session });
 
@@ -32,7 +34,7 @@ export default function Pipeline() {
       <View style={{ flex: 1, gap: 5 }}>
         <Text numberOfLines={1} style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 16 }}>{item.title || 'Untitled role'}</Text>
         <Text numberOfLines={1} style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13 }}>{item.company || 'Company not listed'}</Text>
-        <Text style={{ color: item.status === 'complete' ? colors.teal : colors.amber, fontFamily: 'Inter_600SemiBold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8 }}>{item.status || 'Processing'}</Text>
+        <StatusChip tone={item.status === 'complete' ? 'success' : 'warning'}>{item.status || 'Processing'}</StatusChip>
       </View>
       <Feather name="chevron-right" size={19} color={colors.mutedForeground} />
     </Pressable>
@@ -48,7 +50,7 @@ export default function Pipeline() {
         data={jobs}
         keyExtractor={(item) => item.job_id}
         renderItem={renderJob}
-        contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 24, paddingBottom: 120, gap: 12 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: insets.top + 18, paddingBottom: insets.bottom + 110, gap: 12 }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={pipeline.isRefetching} onRefresh={() => void pipeline.refetch()} tintColor={colors.primary} />}
         ListHeaderComponent={
@@ -63,8 +65,8 @@ export default function Pipeline() {
             <View style={{ backgroundColor: colors.navy, borderRadius: 22, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 15 }}>
               <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}><Feather name="target" size={21} color={colors.primaryForeground} /></View>
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={{ color: '#FFFDFC', fontFamily: 'Inter_700Bold', fontSize: 16 }}>Have a role in mind?</Text>
-                <Text style={{ color: '#C5D0D4', fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 }}>See how well it fits before you spend time applying.</Text>
+                <Text style={{ color: colors.onNavy, fontFamily: 'Inter_700Bold', fontSize: 16 }}>Have a role in mind?</Text>
+                <Text style={{ color: colors.onNavyMuted, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 }}>See how well it fits before you spend time applying.</Text>
               </View>
               <Pressable onPress={() => router.push('/submit')} hitSlop={8}><Feather name="arrow-up-right" size={22} color={colors.primary} /></Pressable>
             </View>

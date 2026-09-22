@@ -6,7 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { api, getDocumentUrl } from '@/lib/api';
 import { reportLabels } from '@/lib/config';
 import { useColors } from '@/hooks/useColors';
-import { Button, ErrorNotice, IconButton, LoadingState, ScoreRing, Screen, WarningList, styles } from '@/components/ui';
+import { ErrorNotice, IconButton, LoadingState, ScoreRing, Screen, StatusChip, WarningList } from '@/components/ui';
 
 function renderReportText(text: string, colors: ReturnType<typeof useColors>) {
   return text.split('\n').filter(Boolean).map((line, index) => {
@@ -49,8 +49,8 @@ export default function JobDetail() {
       <View style={{ borderRadius: 24, backgroundColor: colors.navy, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 18 }}>
         <ScoreRing score={data.score} size={92} />
         <View style={{ flex: 1, gap: 6 }}>
-          <Text style={{ color: '#FFFDFC', fontFamily: 'Inter_700Bold', fontSize: 18 }}>Your fit score</Text>
-          <Text style={{ color: '#C5D0D4', fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>{data.score === null ? 'We’re still processing this role.' : data.score >= 4 ? 'A strong match worth pursuing.' : data.score >= 2.8 ? 'There’s potential with the right positioning.' : 'Read the trade-offs before deciding.'}</Text>
+          <Text style={{ color: colors.onNavy, fontFamily: 'Inter_700Bold', fontSize: 18 }}>Your fit score</Text>
+          <Text style={{ color: colors.onNavyMuted, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>{data.score === null ? 'We’re still processing this role.' : data.score >= 4 ? 'A strong match worth pursuing.' : data.score >= 2.8 ? 'There’s potential with the right positioning.' : 'Read the trade-offs before deciding.'}</Text>
         </View>
       </View>
       <View style={{ gap: 11 }}>
@@ -91,7 +91,7 @@ function DocumentAction({ title, description, icon, url, loading, onPress }: { t
     <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 17, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.72 : 1 })}>
       <View style={{ width: 41, height: 41, borderRadius: 13, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}><Feather name={icon} size={19} color={colors.teal} /></View>
       <View style={{ flex: 1, gap: 4 }}><Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>{title}</Text><Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12 }}>{description}</Text></View>
-      {loading ? <ActivityIndicator color={colors.primary} /> : <Feather name={url ? 'external-link' : 'arrow-right'} size={18} color={colors.primary} />}
+      {loading ? <ActivityIndicator color={colors.primary} /> : <StatusChip tone={url ? 'success' : 'neutral'}>{url ? 'Ready' : 'Create'}</StatusChip>}
     </Pressable>
   );
 }

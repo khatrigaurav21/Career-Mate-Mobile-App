@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
-import { BrandMark, Button, ErrorNotice, Field, SectionEyebrow, styles } from '@/components/ui';
+import { BrandMark, Button, ErrorNotice, Field, SectionEyebrow } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';

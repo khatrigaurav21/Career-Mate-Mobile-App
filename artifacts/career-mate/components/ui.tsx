@@ -112,7 +112,15 @@ export function Button({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: background, opacity: pressed || disabled ? 0.72 : 1 },
+        {
+          backgroundColor: background,
+          opacity: pressed || disabled ? 0.72 : 1,
+          shadowColor: colors.navy,
+          shadowOpacity: variant === 'primary' && !disabled ? 0.12 : 0,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 5 },
+          elevation: variant === 'primary' && !disabled ? 2 : 0,
+        },
         variant === 'ghost' && styles.ghostButton,
         style,
       ]}
@@ -144,7 +152,10 @@ export function IconButton({
       accessibilityLabel={label}
       onPress={onPress}
       hitSlop={10}
-      style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.6 : 1 }]}
+      style={({ pressed }) => [
+        styles.iconButton,
+        { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.6 : 1 },
+      ]}
     >
       <Feather name={icon} size={21} color={colors.navy} />
     </Pressable>
@@ -180,6 +191,78 @@ export function Field({
 export function SectionEyebrow({ children }: { children: React.ReactNode }) {
   const colors = useColors();
   return <Text style={[styles.eyebrow, { color: colors.primary }]}>{children}</Text>;
+}
+
+export function PageHeader({
+  eyebrow,
+  title,
+  subtitle,
+  onBack,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+  onBack?: () => void;
+}) {
+  const colors = useColors();
+  return (
+    <View style={styles.pageHeader}>
+      {onBack && <IconButton icon="arrow-left" onPress={onBack} label="Go back" />}
+      <View style={styles.pageHeaderCopy}>
+        <SectionEyebrow>{eyebrow}</SectionEyebrow>
+        <Text style={[styles.pageTitle, { color: colors.navy }]}>{title}</Text>
+        {subtitle && <Text style={[styles.pageSubtitle, { color: colors.mutedForeground }]}>{subtitle}</Text>}
+      </View>
+    </View>
+  );
+}
+
+export function ChoiceTile({
+  icon,
+  label,
+  caption,
+  selected,
+  onPress,
+}: {
+  icon: keyof typeof Feather.glyphMap;
+  label: string;
+  caption: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const colors = useColors();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.choiceTile,
+        {
+          borderColor: selected ? colors.primary : colors.border,
+          backgroundColor: selected ? colors.card : colors.background,
+          opacity: pressed ? 0.76 : 1,
+        },
+      ]}
+    >
+      <View style={[styles.choiceIcon, { backgroundColor: selected ? colors.primary : colors.muted }]}>
+        <Feather name={icon} size={18} color={selected ? colors.primaryForeground : colors.mutedForeground} />
+      </View>
+      <Text style={[styles.choiceLabel, { color: selected ? colors.navy : colors.mutedForeground }]}>{label}</Text>
+      <Text style={[styles.choiceCaption, { color: colors.mutedForeground }]}>{caption}</Text>
+    </Pressable>
+  );
+}
+
+export function StatusChip({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: 'success' | 'warning' | 'neutral' }) {
+  const colors = useColors();
+  const background = tone === 'success' ? colors.successSoft : tone === 'warning' ? colors.warningSoft : colors.muted;
+  const foreground = tone === 'success' ? colors.success : tone === 'warning' ? colors.warning : colors.mutedForeground;
+  return (
+    <View style={[styles.statusChip, { backgroundColor: background }]}>
+      <Text style={[styles.statusChipText, { color: foreground }]}>{children}</Text>
+    </View>
+  );
 }
 
 export function LoadingState({ title, detail }: { title: string; detail: string }) {
@@ -255,20 +338,30 @@ export function WarningList({ warnings }: { warnings: string[] }) {
 }
 
 export const styles = StyleSheet.create({
-  screenContent: { paddingHorizontal: 22, gap: 18 },
+  screenContent: { paddingHorizontal: 20, gap: 20 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   brandMark: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   brandName: { fontSize: 23, fontFamily: 'Inter_700Bold', letterSpacing: -0.8 },
   button: { minHeight: 54, borderRadius: 16, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
   ghostButton: { paddingHorizontal: 6, minHeight: 40 },
   buttonText: { fontFamily: 'Inter_600SemiBold', fontSize: 15 },
-  iconButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+  iconButton: { width: 38, height: 38, borderRadius: 13, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   fieldGroup: { gap: 8 },
   fieldLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 13, letterSpacing: 0.1 },
   input: { minHeight: 54, borderWidth: 1, borderRadius: 15, paddingHorizontal: 16, paddingVertical: 14, fontFamily: 'Inter_400Regular', fontSize: 15 },
   multilineInput: { minHeight: 145, textAlignVertical: 'top', lineHeight: 22 },
   helper: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
   eyebrow: { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase' },
+  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  pageHeaderCopy: { flex: 1, gap: 4, paddingTop: 2 },
+  pageTitle: { fontFamily: 'Inter_700Bold', fontSize: 28, lineHeight: 34, letterSpacing: -0.7 },
+  pageSubtitle: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 21, marginTop: 2 },
+  choiceTile: { flex: 1, minHeight: 124, borderRadius: 18, borderWidth: 1, padding: 12, justifyContent: 'space-between', gap: 7 },
+  choiceIcon: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  choiceLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 12, lineHeight: 16 },
+  choiceCaption: { fontFamily: 'Inter_400Regular', fontSize: 10, lineHeight: 14 },
+  statusChip: { alignSelf: 'flex-start', paddingHorizontal: 9, paddingVertical: 5, borderRadius: 8 },
+  statusChipText: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 0.7, textTransform: 'uppercase' },
   loadingState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 90, gap: 14 },
   loadingOrb: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' },
   loadingTitle: { fontFamily: 'Inter_700Bold', fontSize: 21, textAlign: 'center' },
