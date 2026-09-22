@@ -1,0 +1,36 @@
+Add three native, animated components to the Career Mate app, inspired by three components from a web-only library (rare-ui / rareui.com) that Gaurav liked. That library's actual code (Next.js, Tailwind, Framer Motion, raw SVG) does not run in React Native — do not try to install or port it directly. Rebuild the behavior natively using moti (a Framer-Motion-style API built on react-native-reanimated, already the right tool for this) plus react-native-svg where a component needs vector shapes. Add moti and react-native-svg as dependencies if they aren't already present.
+
+1. Animated OTP input — replaces the code-entry field in app/login.tsx
+Right now the code-entry step is a single Field the user types the whole code into. Replace it with a row of individual boxes, one per digit (6-8 boxes, matching however many digits the current code can be — check the real max length already used in login.tsx).
+
+Behavior:
+
+Typing a digit fills the current box and auto-advances focus to the next one.
+Backspace on an empty box moves focus back and clears the previous box.
+Pasting or receiving an SMS-autofill code fills all boxes at once from whatever position focus was at.
+Use textContentType="oneTimeCode" (iOS) so the OS's own SMS-code autofill suggestion works.
+Each digit animates in with a small roll/slide-up motion when typed (spring, snappy — 400-500ms range), and a small shake animation across the whole row if the parent marks the code as wrong (add an status: 'idle' | 'error' prop the login screen can set after a failed /auth/verify call).
+Keep it a controlled component: value: string, onChange: (value: string) => void, onComplete: (value: string) => void fired when every box is filled — wire onComplete to auto-submit the code in login.tsx instead of requiring a separate button tap once all digits are in (keep the existing button too, for anyone who wants to review before submitting).
+This is the single highest-value one of the three — it's the app's actual first real interaction after signup, every session, so make this feel genuinely satisfying to use.
+
+2. Animated score counter — for data.score in app/job/[id].tsx, and the score shown per row on the pipeline list
+Right now the fit score (0-5, one decimal place) just appears as static text. When a score first renders (screen mount, or the moment job.data.score goes from null/loading to a real number), animate it counting up from 0 to the real value over about 500-700ms, easing out. Keep the existing color-band logic (red/amber/green by score range) — the color should settle into its final band as the number lands, not flash between bands mid-count.
+
+Apply this to both: the big score ring on the job detail screen, and the smaller score badge on each pipeline list row (list rows can use a shorter/simpler version of the same animation — a full one-second count-up on every row as the list scrolls in would be too much motion at once).
+
+3. Segmented progress track — for the long-running loading states (evaluate, generate CV, generate cover letter, guided profile intake)
+These calls take 60-150 seconds. Right now they show a generic spinner with a static caption. Replace with a 2-3 segment progress track (a row of pill/dot shapes, like a stepped loading indicator) that advances through labeled phases, giving the user a sense of real progress instead of an indefinite spinner.
+
+Skip the icon-morphing/path-interpolation complexity of the source component entirely — it's not worth the effort for what this needs. A simple crossfade between a spinner/play icon and a checkmark when a phase completes is enough. What actually matters and should be kept:
+
+A row of segments, one per phase, each a small pill.
+The active segment fills its own pill left-to-right based on estimated elapsed time (use a rough time-based estimate per phase, not real backend progress, since the API doesn't report any).
+Completed segments show solid/filled; the active one is filling; upcoming ones are dim.
+Phase labels per call (use steps prop taking an array of { label: string, estimatedMs: number } so this is reusable across all four call sites, not hardcoded per screen):
+
+Evaluate a job: "Reading the posting" → "Comparing to your profile" → "Writing your report"
+Generate CV / cover letter: "Pulling your strongest matches" → "Writing the draft" → "Formatting the PDF"
+Guided profile intake: "Reading your answers" → "Writing your CV"
+If the real call finishes before the estimated total time, snap all segments to complete rather than waiting out the estimate. If it runs long, let the last segment sit at "nearly full" rather than stalling at a fixed point or overshooting past 100%.
+
+Wire this into the four existing loading states: submit.tsx's evaluate loading notice, job/[id].tsx's CV/cover-letter generation loading states, and setup.tsx's guided-intake loading text.
