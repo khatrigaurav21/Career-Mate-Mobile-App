@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native';
+import { Linking, Pressable, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
 import { api, getDocumentUrl } from '@/lib/api';
 import { reportLabels } from '@/lib/config';
 import { useColors } from '@/hooks/useColors';
-import { ErrorNotice, IconButton, LoadingState, ScoreRing, Screen, StatusChip, WarningList } from '@/components/ui';
+import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, StatusChip, WarningList } from '@/components/ui';
 
 function renderReportText(text: string, colors: ReturnType<typeof useColors>) {
   return text.split('\n').filter(Boolean).map((line, index) => {
@@ -76,7 +76,11 @@ export default function JobDetail() {
                 </View>
                 <Feather name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.mutedForeground} />
               </Pressable>
-              {open && <View style={{ paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 15 }}>{renderReportText(value, colors)}</View>}
+               <AnimatedSection open={open}>
+                 <View style={{ paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 15 }}>
+                   {renderReportText(value, colors)}
+                 </View>
+               </AnimatedSection>
             </View>
           );
         })}
@@ -91,7 +95,14 @@ function DocumentAction({ title, description, icon, url, loading, onPress }: { t
     <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 17, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.72 : 1 })}>
       <View style={{ width: 41, height: 41, borderRadius: 13, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}><Feather name={icon} size={19} color={colors.teal} /></View>
       <View style={{ flex: 1, gap: 4 }}><Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>{title}</Text><Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12 }}>{description}</Text></View>
-      {loading ? <ActivityIndicator color={colors.primary} /> : <StatusChip tone={url ? 'success' : 'neutral'}>{url ? 'Ready' : 'Create'}</StatusChip>}
+      {loading ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <MotionIndicator color={colors.primary} />
+          <StatusChip tone="warning">Preparing PDF</StatusChip>
+        </View>
+      ) : (
+        <StatusChip tone={url ? 'success' : 'neutral'}>{url ? 'Ready' : 'Create'}</StatusChip>
+      )}
     </Pressable>
   );
 }

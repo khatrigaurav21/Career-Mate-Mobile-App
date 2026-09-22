@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  AccessibilityInfo,
   Pressable,
   ScrollView,
   StyleProp,
@@ -12,8 +13,67 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
+
+export function useReducedMotion() {
+  const [reducedMotion, setReducedMotion] = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (mounted) setReducedMotion(enabled);
+    });
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReducedMotion);
+    return () => {
+      mounted = false;
+      subscription.remove();
+    };
+  }, []);
+
+  return reducedMotion;
+}
+
+export function MotionIndicator({ color, size = 'small' }: { color: string; size?: 'small' | 'large' }) {
+  const reducedMotion = useReducedMotion();
+  const pulse = useSharedValue(1);
+
+  React.useEffect(() => {
+    if (reducedMotion) {
+      cancelAnimation(pulse);
+      pulse.value = 1;
+      return;
+    }
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.08, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1,
+      false,
+    );
+    return () => cancelAnimation(pulse);
+  }, [pulse, reducedMotion]);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
+  if (reducedMotion) {
+    return <Feather name="loader" size={size === 'large' ? 28 : 17} color={color} />;
+  }
+  return (
+    <Animated.View style={style}>
+      <ActivityIndicator color={color} size={size} />
+    </Animated.View>
+  );
+}
 
 export function Screen({
   children,
@@ -126,7 +186,7 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={foreground} />
+        <MotionIndicator color={foreground} />
       ) : (
         <>
           {icon && <Feather name={icon} size={17} color={foreground} />}
@@ -267,14 +327,88 @@ export function StatusChip({ children, tone = 'neutral' }: { children: React.Rea
 
 export function LoadingState({ title, detail }: { title: string; detail: string }) {
   const colors = useColors();
+  const reducedMotion = useReducedMotion();
+  const pulse = useSharedValue(1);
+
+  React.useEffect(() => {
+    if (reducedMotion) {
+      cancelAnimation(pulse);
+      pulse.value = 1;
+      return;
+    }
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.04, { duration: 1200, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1,
+      false,
+    );
+    return () => cancelAnimation(pulse);
+  }, [pulse, reducedMotion]);
+
+  const orbStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
+
   return (
     <View style={styles.loadingState}>
-      <View style={[styles.loadingOrb, { backgroundColor: colors.accent }]}>
-        <ActivityIndicator color={colors.teal} size="large" />
-      </View>
+      <Animated.View style={[styles.loadingOrb, { backgroundColor: colors.accent }, orbStyle]}>
+        <MotionIndicator color={colors.teal} size="large" />
+      </Animated.View>
       <Text style={[styles.loadingTitle, { color: colors.navy }]}>{title}</Text>
       <Text style={[styles.loadingDetail, { color: colors.mutedForeground }]}>{detail}</Text>
     </View>
+  );
+}
+
+export function LoadingNotice({ title, detail }: { title: string; detail: string }) {
+  const colors = useColors();
+  return (
+    <View style={[styles.loadingNotice, { backgroundColor: colors.accent }]}>
+      <View style={[styles.loadingNoticeIcon, { backgroundColor: colors.card }]}>
+        <MotionIndicator color={colors.teal} />
+      </View>
+      <View style={styles.loadingNoticeCopy}>
+        <Text style={[styles.loadingNoticeTitle, { color: colors.accentForeground }]}>{title}</Text>
+        <Text style={[styles.loadingNoticeDetail, { color: colors.mutedForeground }]}>{detail}</Text>
+      </View>
+    </View>
+  );
+}
+
+export function AnimatedSection({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: React.ReactNode;
+}) {
+  const reducedMotion = useReducedMotion();
+  const progress = useSharedValue(open ? 1 : 0);
+  const [contentHeight, setContentHeight] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!contentHeight) return;
+    progress.value = withTiming(open ? 1 : 0, {
+      duration: reducedMotion ? 0 : 220,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [contentHeight, open, progress, reducedMotion]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: contentHeight * progress.value,
+    opacity: progress.value,
+    transform: [{ translateY: (1 - progress.value) * -6 }],
+  }));
+
+  return (
+    <Animated.View
+      style={[styles.animatedSection, animatedStyle]}
+      pointerEvents={open ? 'auto' : 'none'}
+      accessibilityElementsHidden={!open}
+      importantForAccessibility={open ? 'auto' : 'no-hide-descendants'}
+    >
+      <View onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)}>{children}</View>
+    </Animated.View>
   );
 }
 
@@ -366,6 +500,12 @@ export const styles = StyleSheet.create({
   loadingOrb: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' },
   loadingTitle: { fontFamily: 'Inter_700Bold', fontSize: 21, textAlign: 'center' },
   loadingDetail: { fontFamily: 'Inter_400Regular', fontSize: 14, textAlign: 'center', lineHeight: 21, maxWidth: 300 },
+  loadingNotice: { borderRadius: 16, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  loadingNoticeIcon: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  loadingNoticeCopy: { flex: 1, gap: 5 },
+  loadingNoticeTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  loadingNoticeDetail: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 },
+  animatedSection: { overflow: 'hidden' },
   errorBox: { borderWidth: 1, borderRadius: 15, padding: 14, flexDirection: 'row', gap: 10 },
   errorText: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 },
   retryText: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },

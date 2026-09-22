@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { router } from 'expo-router';
-import { Button, ChoiceTile, ErrorNotice, Field, PageHeader, Screen } from '@/components/ui';
+import { Button, ChoiceTile, ErrorNotice, Field, LoadingNotice, PageHeader, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api, isFallbackToPaste } from '@/lib/api';
 
@@ -69,7 +69,7 @@ export default function SubmitJob() {
           {file && <Text style={{ color: colors.teal, fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>{file.name}</Text>}
         </View>
       )}
-      {loading && <View style={{ backgroundColor: colors.accent, borderRadius: 16, padding: 15, gap: 6 }}><Text style={{ color: colors.accentForeground, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Reading the role carefully…</Text><Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>This can take up to two minutes while we fetch the posting and compare it with your profile.</Text></View>}
+      {loading && <LoadingNotice title="Reading the role carefully…" detail="This can take up to two minutes while we fetch the posting and compare it with your profile." />}
       {error && <ErrorNotice message={error} />}
       <Button onPress={submit} loading={loading} icon="arrow-right">Evaluate this role</Button>
     </Screen>
