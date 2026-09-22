@@ -1,6 +1,6 @@
-# [Project name]
+# Career Mate
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Native Expo app that evaluates job postings against a user's CV and helps them generate tailored application documents.
 
 ## Run & Operate
 
@@ -26,11 +26,17 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The mobile client talks directly to the existing Career Mate production API; no local database or backend routes are created.
+- Access and refresh tokens are persisted with Expo SecureStore, and every 401 clears the session.
+- Profile and job state use React Query; session/profile identity is shared through AuthContext.
+- The API hostname is centralized in `artifacts/career-mate/lib/config.ts` and can be overridden with `EXPO_PUBLIC_CAREER_MATE_API_URL`.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Email one-time-code sign-in against the deployed Career Mate API.
+- Three-way CV setup: upload, paste, or guided intake.
+- Three-way job evaluation: URL, pasted text, or uploaded file.
+- Pipeline history, collapsible evaluation reports, and tailored CV/cover-letter generation.
 
 ## User preferences
 

@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/"
+title = "Career Mate"
+description = "A native mobile career companion that evaluates job opportunities against a user's CV and creates tailored application documents."
+version = "1.0.0"
+id = "artifacts/career-mate"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/" ]
+localPort = 25049
+
+[services.development]
+run = "pnpm --filter @workspace/career-mate run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/career-mate", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/career-mate", "run", "serve" ]
+
+[services.env]
+PORT = "25049"
+BASE_PATH = "/"

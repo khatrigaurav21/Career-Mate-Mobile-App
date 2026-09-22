@@ -1,0 +1,22 @@
+
+The `report` fields are each a block of prose/markdown-ish text (career-ops' evaluation format — role summary, requirement match table, positioning strategy, comp analysis, customization plan, interview prep, posting legitimacy, and an optional H block with draft application answers for very high-scoring matches). Render each as its own clearly labeled, collapsible or scrollable section — this is the core value of the app, so give it real reading-friendly typography and spacing, not a dense text dump.
+
+Two actions on this screen, each hitting its own endpoint and each independently regenerable:
+
+- **`POST /cv/generate`**, body `{ "job_id": string }` → `{ "pdf_url": string, "tailored": boolean, "page_count": number, "ats_score": number, "ats_grade": string, "warnings": string[] }`
+- **`POST /cover-letter/generate`**, body `{ "job_id": string }` → `{ "pdf_url": string, "page_count": number, "word_count": number, "warnings": string[] }`
+
+Both can take up to 60 seconds — real loading state again. `pdf_url` is a direct downloadable/viewable link (Supabase Storage). If `pdf_url` is already present from the initial `GET /jobs/:id` load, show a "view/download" state instead of a "generate" button, with a clear option to regenerate. Surface `warnings` to the user if the array is non-empty (they're real, specific things like an ATS score note or a fact that couldn't be verified) — don't silently swallow them, but don't treat them as failures either.
+
+## Design direction
+
+This app replaces an existing web version that felt like "just a website" — the whole reason for rebuilding it natively is for this to feel like a real, polished, intuitive app. Concretely:
+- Native navigation patterns (proper tab/stack navigation, native-feeling transitions), not a web app's page loads.
+- Clear visual hierarchy: the score is the single most important number on both the pipeline list and the job detail screen — make it impossible to miss, color-coded by range (e.g. red/amber/green bands).
+- Every async action (evaluate, generate CV, generate cover letter, profile setup) needs its own real loading and error state — these calls are slow (AI + PDF rendering), and a generic spinner with no context reads as broken.
+- Empty states (no jobs yet, no profile yet) should feel like onboarding, not a blank screen.
+- Clean, modern, mobile-first typography and spacing — this is a personal productivity tool someone will check often, so it should feel calm and fast, not busy.
+
+## What "done" looks like for this first pass
+
+A working Expo app with: email/OTP login, the three-way profile setup flow, a pipeline list with empty state, the three-way job-evaluate flow, and a job detail screen with the full report plus CV/cover-letter generation and download. Wired against the real production API at `https://career-mate-api.onrender.com` — no mock data, no placeholder backend.
