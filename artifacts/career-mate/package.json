@@ -57,6 +57,7 @@
   "dependencies": {
     "expo-document-picker": "^57.0.2",
     "expo-file-system": "^57.0.7",
-    "expo-secure-store": "^57.0.4"
+    "expo-secure-store": "^57.0.4",
+    "moti": "^0.30.0"
   }
 }

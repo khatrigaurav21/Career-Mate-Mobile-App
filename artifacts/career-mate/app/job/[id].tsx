@@ -6,7 +6,8 @@ import { Feather } from '@expo/vector-icons';
 import { api, getDocumentUrl } from '@/lib/api';
 import { reportLabels } from '@/lib/config';
 import { useColors } from '@/hooks/useColors';
-import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, StatusChip, WarningList } from '@/components/ui';
+import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, SegmentedProgress, StatusChip, WarningList } from '@/components/ui';
+import type { ProgressStep } from '@/components/ui';
 
 function renderReportText(text: string, colors: ReturnType<typeof useColors>) {
   return text.split('\n').filter(Boolean).map((line, index) => {
@@ -55,9 +56,33 @@ export default function JobDetail() {
       </View>
       <View style={{ gap: 11 }}>
         <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 19 }}>Application documents</Text>
-        <DocumentAction title="Tailored CV" description={cvUrl ? 'Ready to view or download' : 'Generate a role-specific version'} icon="file-text" url={cvUrl} loading={cvMutation.isPending} onPress={() => cvUrl ? void Linking.openURL(cvUrl) : cvMutation.mutate()} />
+        <DocumentAction
+          title="Tailored CV"
+          description={cvUrl ? 'Ready to view or download' : 'Generate a role-specific version'}
+          icon="file-text"
+          url={cvUrl}
+          loading={cvMutation.isPending}
+          progressSteps={[
+            { label: 'Pulling your strongest matches', estimatedMs: 25000 },
+            { label: 'Writing the draft', estimatedMs: 35000 },
+            { label: 'Formatting the PDF', estimatedMs: 30000 },
+          ]}
+          onPress={() => cvUrl ? void Linking.openURL(cvUrl) : cvMutation.mutate()}
+        />
         {cvMutation.data && <WarningList warnings={cvMutation.data.warnings} />}
-        <DocumentAction title="Cover letter" description={coverUrl ? 'Ready to view or download' : 'Generate a focused first draft'} icon="edit-3" url={coverUrl} loading={coverMutation.isPending} onPress={() => coverUrl ? void Linking.openURL(coverUrl) : coverMutation.mutate()} />
+        <DocumentAction
+          title="Cover letter"
+          description={coverUrl ? 'Ready to view or download' : 'Generate a focused first draft'}
+          icon="edit-3"
+          url={coverUrl}
+          loading={coverMutation.isPending}
+          progressSteps={[
+            { label: 'Pulling your strongest matches', estimatedMs: 20000 },
+            { label: 'Writing the draft', estimatedMs: 40000 },
+            { label: 'Formatting the PDF', estimatedMs: 30000 },
+          ]}
+          onPress={() => coverUrl ? void Linking.openURL(coverUrl) : coverMutation.mutate()}
+        />
         {coverMutation.data && <WarningList warnings={coverMutation.data.warnings} />}
         {(cvMutation.isError || coverMutation.isError) && <ErrorNotice message="We couldn’t generate that document. You can try again." />}
       </View>
@@ -89,12 +114,32 @@ export default function JobDetail() {
   );
 }
 
-function DocumentAction({ title, description, icon, url, loading, onPress }: { title: string; description: string; icon: keyof typeof Feather.glyphMap; url: string | null; loading: boolean; onPress: () => void }) {
+function DocumentAction({
+  title,
+  description,
+  icon,
+  url,
+  loading,
+  progressSteps,
+  onPress,
+}: {
+  title: string;
+  description: string;
+  icon: keyof typeof Feather.glyphMap;
+  url: string | null;
+  loading: boolean;
+  progressSteps: ProgressStep[];
+  onPress: () => void;
+}) {
   const colors = useColors();
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 17, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.72 : 1 })}>
       <View style={{ width: 41, height: 41, borderRadius: 13, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}><Feather name={icon} size={19} color={colors.teal} /></View>
-      <View style={{ flex: 1, gap: 4 }}><Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>{title}</Text><Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12 }}>{description}</Text></View>
+      <View style={{ flex: 1, gap: 4 }}>
+        <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>{title}</Text>
+        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12 }}>{description}</Text>
+        {loading && <SegmentedProgress steps={progressSteps} />}
+      </View>
       {loading ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
           <MotionIndicator color={colors.primary} />

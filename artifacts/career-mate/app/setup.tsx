@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Button, ChoiceTile, ErrorNotice, Field, PageHeader, Screen } from '@/components/ui';
+import { Button, ChoiceTile, ErrorNotice, Field, LoadingNotice, PageHeader, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api, isFallbackToPaste } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -132,7 +132,16 @@ export default function Setup() {
           <Field label="Anything to avoid?" placeholder="Industries, travel, or work patterns" value={form.avoid_preferences ?? ''} onChangeText={(value) => update('avoid_preferences', value)} />
         </View>
       )}
-      {loading && mode === 'guided' && <Text style={{ color: colors.teal, fontFamily: 'Inter_500Medium', fontSize: 13, textAlign: 'center' }}>Writing your profile thoughtfully — this can take up to a minute.</Text>}
+      {loading && mode === 'guided' && (
+        <LoadingNotice
+          title="Writing your profile thoughtfully"
+          detail="We’re turning your answers into a focused CV."
+          steps={[
+            { label: 'Reading your answers', estimatedMs: 30000 },
+            { label: 'Writing your CV', estimatedMs: 60000 },
+          ]}
+        />
+      )}
       {error && <ErrorNotice message={error} />}
       <Button onPress={submit} loading={loading} icon="arrow-right">{params.redo ? 'Save updated profile' : 'Build my profile'}</Button>
     </Screen>

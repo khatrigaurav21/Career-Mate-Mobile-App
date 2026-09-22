@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
-import { BrandMark, Button, ErrorNotice, Field, SectionEyebrow } from '@/components/ui';
+import { BrandMark, Button, ErrorNotice, Field, OtpInput, SectionEyebrow } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -17,6 +17,7 @@ export default function Login() {
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [otpStatus, setOtpStatus] = useState<'idle' | 'error'>('idle');
 
   const requestCode = async () => {
     if (!email.trim() || !email.includes('@')) {
@@ -35,18 +36,21 @@ export default function Login() {
     }
   };
 
-  const verifyCode = async () => {
-    if (code.trim().length < 6) {
+  const verifyCode = async (submittedCode = code) => {
+    const normalizedCode = submittedCode.trim();
+    if (normalizedCode.length < 6) {
       setError('Enter the 6–8 digit code from your email');
       return;
     }
     setError('');
+    setOtpStatus('idle');
     setLoading(true);
     try {
-      const session = await api.verify(email.trim(), code.trim());
+      const session = await api.verify(email.trim(), normalizedCode);
       await signIn(session);
       router.replace('/');
     } catch (verifyError) {
+      setOtpStatus('error');
       setError(verifyError instanceof Error ? verifyError.message : 'That code did not work');
     } finally {
       setLoading(false);
@@ -90,19 +94,18 @@ export default function Login() {
                 <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Check your inbox</Text>
                 <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>Enter the code we sent to {email}</Text>
               </View>
-              <Field
-                label="One-time code"
-                placeholder="123456"
-                value={code}
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                autoCapitalize="none"
-                maxLength={8}
-                returnKeyType="done"
-                onSubmitEditing={verifyCode}
-              />
-              <Button onPress={verifyCode} loading={loading} icon="check" testID="verify-code">Continue</Button>
-              <Pressable onPress={() => { setStep('email'); setCode(''); setError(''); }}>
+              <View style={{ gap: 9 }}>
+                <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>One-time code</Text>
+                <OtpInput
+                  value={code}
+                  onChange={(value) => { setCode(value); setOtpStatus('idle'); }}
+                  onComplete={(value) => void verifyCode(value)}
+                  status={otpStatus}
+                  length={8}
+                />
+              </View>
+              <Button onPress={() => void verifyCode()} loading={loading} icon="check" testID="verify-code">Continue</Button>
+              <Pressable onPress={() => { setStep('email'); setCode(''); setOtpStatus('idle'); setError(''); }}>
                 <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold', fontSize: 13, textAlign: 'center' }}>Use a different email</Text>
               </Pressable>
             </>

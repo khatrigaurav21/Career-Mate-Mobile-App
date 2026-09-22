@@ -69,7 +69,17 @@ export default function SubmitJob() {
           {file && <Text style={{ color: colors.teal, fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>{file.name}</Text>}
         </View>
       )}
-      {loading && <LoadingNotice title="Reading the role carefully…" detail="This can take up to two minutes while we fetch the posting and compare it with your profile." />}
+      {loading && (
+        <LoadingNotice
+          title="Reading the role carefully…"
+          detail="This can take up to two minutes while we fetch the posting and compare it with your profile."
+          steps={[
+            { label: 'Reading the posting', estimatedMs: 30000 },
+            { label: 'Comparing to your profile', estimatedMs: 45000 },
+            { label: 'Writing your report', estimatedMs: 45000 },
+          ]}
+        />
+      )}
       {error && <ErrorNotice message={error} />}
       <Button onPress={submit} loading={loading} icon="arrow-right">Evaluate this role</Button>
     </Screen>

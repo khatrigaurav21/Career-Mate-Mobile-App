@@ -2,20 +2,25 @@ import React from 'react';
 import {
   ActivityIndicator,
   AccessibilityInfo,
+  NativeSyntheticEvent,
   Pressable,
   ScrollView,
   StyleProp,
   StyleSheet,
   Text,
   TextInput,
+  TextInputKeyPressEventData,
   TextInputProps,
   View,
   ViewStyle,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { MotiView } from 'moti';
 import Animated, {
   cancelAnimation,
   Easing,
+  runOnJS,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -71,6 +76,108 @@ export function MotionIndicator({ color, size = 'small' }: { color: string; size
   return (
     <Animated.View style={style}>
       <ActivityIndicator color={color} size={size} />
+    </Animated.View>
+  );
+}
+
+export function OtpInput({
+  value,
+  onChange,
+  onComplete,
+  status = 'idle',
+  length = 8,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onComplete: (value: string) => void;
+  status?: 'idle' | 'error';
+  length?: number;
+}) {
+  const colors = useColors();
+  const reducedMotion = useReducedMotion();
+  const inputRefs = React.useRef<Array<TextInput | null>>([]);
+  const shake = useSharedValue(0);
+  const digits = Array.from({ length }, (_, index) => value[index] ?? '');
+
+  React.useEffect(() => {
+    if (status !== 'error' || reducedMotion) return;
+    shake.value = withSequence(
+      withTiming(-6, { duration: 55 }),
+      withTiming(6, { duration: 55 }),
+      withTiming(-4, { duration: 45 }),
+      withTiming(4, { duration: 45 }),
+      withTiming(0, { duration: 55 }),
+    );
+  }, [reducedMotion, shake, status]);
+
+  const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: shake.value }] }));
+
+  const focusIndex = (index: number) => {
+    inputRefs.current[index]?.focus();
+  };
+
+  const updateFrom = (index: number, raw: string) => {
+    const incoming = raw.replace(/\D/g, '');
+    if (!incoming) {
+      onChange(value.slice(0, index) + value.slice(index + 1));
+      return;
+    }
+
+    const nextDigits = value.split('');
+    incoming.slice(0, length - index).split('').forEach((digit, offset) => {
+      nextDigits[index + offset] = digit;
+    });
+    const nextValue = nextDigits.join('').slice(0, length);
+    onChange(nextValue);
+
+    const nextIndex = Math.min(index + incoming.length, length - 1);
+    if (nextValue.length === length) {
+      onComplete(nextValue);
+    } else {
+      focusIndex(nextIndex);
+    }
+  };
+
+  const handleKeyPress = (index: number, event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    if (event.nativeEvent.key !== 'Backspace' || digits[index]) return;
+    const previousIndex = Math.max(0, index - 1);
+    const nextValue = value.slice(0, previousIndex) + value.slice(previousIndex + 1);
+    onChange(nextValue);
+    focusIndex(previousIndex);
+  };
+
+  return (
+    <Animated.View style={[styles.otpRow, rowStyle]}>
+      {digits.map((digit, index) => (
+        <MotiView
+          key={`${index}-${digit || 'empty'}`}
+          from={reducedMotion ? { opacity: 1, translateY: 0 } : { opacity: 0, translateY: -8 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 16, stiffness: 220 }}
+          style={[
+            styles.otpCell,
+            {
+              backgroundColor: colors.card,
+              borderColor: status === 'error' ? colors.destructive : digit ? colors.primary : colors.input,
+            },
+          ]}
+        >
+          <TextInput
+            ref={(ref) => { inputRefs.current[index] = ref; }}
+            value={digit}
+            onChangeText={(text) => updateFrom(index, text)}
+            onKeyPress={(event) => handleKeyPress(index, event)}
+            onFocus={() => undefined}
+            keyboardType="number-pad"
+            textContentType={index === 0 ? 'oneTimeCode' : 'none'}
+            autoComplete={index === 0 ? 'one-time-code' : 'off'}
+            maxLength={length}
+            selectTextOnFocus
+            style={[styles.otpInput, { color: colors.navy }]}
+            accessibilityLabel={`Code digit ${index + 1} of ${length}`}
+          />
+        </MotiView>
+      ))}
     </Animated.View>
   );
 }
@@ -360,16 +467,88 @@ export function LoadingState({ title, detail }: { title: string; detail: string 
   );
 }
 
-export function LoadingNotice({ title, detail }: { title: string; detail: string }) {
+export type ProgressStep = { label: string; estimatedMs: number };
+
+export function SegmentedProgress({
+  steps,
+  complete = false,
+}: {
+  steps: ProgressStep[];
+  complete?: boolean;
+}) {
+  const colors = useColors();
+  const reducedMotion = useReducedMotion();
+  const [elapsed, setElapsed] = React.useState(0);
+  const startedAt = React.useRef(Date.now());
+  const total = steps.reduce((sum, step) => sum + Math.max(step.estimatedMs, 1), 0);
+
+  React.useEffect(() => {
+    startedAt.current = Date.now();
+    setElapsed(0);
+    if (complete) return;
+    const interval = setInterval(() => {
+      setElapsed(Date.now() - startedAt.current);
+    }, reducedMotion ? 350 : 120);
+    return () => clearInterval(interval);
+  }, [complete, reducedMotion, steps]);
+
+  const effectiveElapsed = complete ? total : Math.min(elapsed, total * 0.98);
+  let remaining = effectiveElapsed;
+  const fills = steps.map((step) => {
+    const duration = Math.max(step.estimatedMs, 1);
+    const fill = Math.min(1, Math.max(0, remaining / duration));
+    remaining -= duration;
+    return fill;
+  });
+  const activeIndex = complete ? -1 : Math.max(0, fills.findIndex((fill) => fill < 1));
+  const activeLabel = steps[activeIndex === -1 ? steps.length - 1 : activeIndex]?.label;
+
+  return (
+    <View style={styles.progressGroup}>
+      <View style={styles.progressTrackRow}>
+        {steps.map((step, index) => {
+          const fill = fills[index] ?? 0;
+          const finished = complete || fill >= 1;
+          const active = !finished && index === activeIndex;
+          return (
+            <View key={step.label} style={[styles.progressSegment, { backgroundColor: colors.muted }]}>
+              <MotiView
+                animate={{ width: `${Math.max(finished ? 100 : active ? fill * 100 : 0, active && fill > 0 ? 4 : 0)}%` }}
+                transition={{ type: 'timing', duration: reducedMotion ? 0 : 180 }}
+                style={[styles.progressFill, { backgroundColor: finished ? colors.teal : colors.primary }]}
+              />
+            </View>
+          );
+        })}
+      </View>
+      <View style={styles.progressLabelRow}>
+        <Text style={[styles.progressLabel, { color: colors.accentForeground }]}>
+          {complete ? 'Ready' : activeLabel}
+        </Text>
+        <Text style={[styles.progressMeta, { color: colors.mutedForeground }]}>
+          {complete ? 'Complete' : `${Math.min(100, Math.round((effectiveElapsed / total) * 100))}%`}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+export function LoadingNotice({
+  title,
+  detail,
+  steps,
+}: {
+  title: string;
+  detail: string;
+  steps: ProgressStep[];
+}) {
   const colors = useColors();
   return (
     <View style={[styles.loadingNotice, { backgroundColor: colors.accent }]}>
-      <View style={[styles.loadingNoticeIcon, { backgroundColor: colors.card }]}>
-        <MotionIndicator color={colors.teal} />
-      </View>
       <View style={styles.loadingNoticeCopy}>
         <Text style={[styles.loadingNoticeTitle, { color: colors.accentForeground }]}>{title}</Text>
         <Text style={[styles.loadingNoticeDetail, { color: colors.mutedForeground }]}>{detail}</Text>
+        <SegmentedProgress steps={steps} />
       </View>
     </View>
   );
@@ -437,7 +616,38 @@ export function ErrorNotice({
 
 export function ScoreRing({ score, size = 74 }: { score: number | null; size?: number }) {
   const colors = useColors();
+  const reducedMotion = useReducedMotion();
+  const animatedScore = useSharedValue(score ?? 0);
+  const [displayScore, setDisplayScore] = React.useState<number | null>(score === null ? null : 0);
   const tone = score === null ? colors.mutedForeground : score >= 4 ? colors.success : score >= 2.8 ? colors.amber : colors.destructive;
+
+  React.useEffect(() => {
+    if (score === null) {
+      cancelAnimation(animatedScore);
+      animatedScore.value = 0;
+      setDisplayScore(null);
+      return;
+    }
+    if (reducedMotion) {
+      animatedScore.value = score;
+      setDisplayScore(score);
+      return;
+    }
+    animatedScore.value = 0;
+    setDisplayScore(0);
+    animatedScore.value = withTiming(score, {
+      duration: size >= 90 ? 650 : 420,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [animatedScore, reducedMotion, score, size]);
+
+  useAnimatedReaction(
+    () => animatedScore.value,
+    (current) => {
+      runOnJS(setDisplayScore)(current);
+    },
+  );
+
   return (
     <View
       style={[
@@ -446,7 +656,7 @@ export function ScoreRing({ score, size = 74 }: { score: number | null; size?: n
       ]}
     >
       <Text style={[styles.scoreNumber, { color: tone, fontSize: size * 0.31 }]}>
-        {score === null ? '—' : score.toFixed(1)}
+        {displayScore === null ? '—' : displayScore.toFixed(1)}
       </Text>
       <Text style={[styles.scoreOutOf, { color: colors.mutedForeground }]}>/ 5</Text>
     </View>
@@ -501,10 +711,16 @@ export const styles = StyleSheet.create({
   loadingTitle: { fontFamily: 'Inter_700Bold', fontSize: 21, textAlign: 'center' },
   loadingDetail: { fontFamily: 'Inter_400Regular', fontSize: 14, textAlign: 'center', lineHeight: 21, maxWidth: 300 },
   loadingNotice: { borderRadius: 16, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  loadingNoticeIcon: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   loadingNoticeCopy: { flex: 1, gap: 5 },
   loadingNoticeTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
   loadingNoticeDetail: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 },
+  progressGroup: { marginTop: 5, gap: 7 },
+  progressTrackRow: { flexDirection: 'row', gap: 5 },
+  progressSegment: { flex: 1, height: 6, borderRadius: 99, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 99 },
+  progressLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  progressLabel: { flex: 1, fontFamily: 'Inter_600SemiBold', fontSize: 11 },
+  progressMeta: { fontFamily: 'Inter_500Medium', fontSize: 10 },
   animatedSection: { overflow: 'hidden' },
   errorBox: { borderWidth: 1, borderRadius: 15, padding: 14, flexDirection: 'row', gap: 10 },
   errorText: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 },
@@ -512,6 +728,9 @@ export const styles = StyleSheet.create({
   scoreRing: { borderWidth: 6, alignItems: 'center', justifyContent: 'center' },
   scoreNumber: { fontFamily: 'Inter_700Bold' },
   scoreOutOf: { fontFamily: 'Inter_500Medium', fontSize: 10, marginTop: -2 },
+  otpRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 7 },
+  otpCell: { flex: 1, maxWidth: 44, minHeight: 56, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  otpInput: { width: '100%', height: '100%', minHeight: 54, textAlign: 'center', fontFamily: 'Inter_700Bold', fontSize: 21, padding: 0 },
   warningBox: { borderWidth: 1, borderRadius: 15, padding: 14, gap: 8 },
   warningHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   warningTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
