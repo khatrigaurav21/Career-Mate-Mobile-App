@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Linking, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
-import { api, getDocumentUrl, reportLabels } from '@/lib/api';
+import { api, getDocumentUrl } from '@/lib/api';
+import { reportLabels } from '@/lib/config';
 import { useColors } from '@/hooks/useColors';
 import { Button, ErrorNotice, IconButton, LoadingState, ScoreRing, Screen, WarningList, styles } from '@/components/ui';
 
@@ -90,7 +91,7 @@ function DocumentAction({ title, description, icon, url, loading, onPress }: { t
     <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 17, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.72 : 1 })}>
       <View style={{ width: 41, height: 41, borderRadius: 13, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}><Feather name={icon} size={19} color={colors.teal} /></View>
       <View style={{ flex: 1, gap: 4 }}><Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>{title}</Text><Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12 }}>{description}</Text></View>
-      {loading ? <LoadingState title="" detail="" /> : <Feather name={url ? 'external-link' : 'arrow-right'} size={18} color={colors.primary} />}
+      {loading ? <ActivityIndicator color={colors.primary} /> : <Feather name={url ? 'external-link' : 'arrow-right'} size={18} color={colors.primary} />}
     </Pressable>
   );
 }

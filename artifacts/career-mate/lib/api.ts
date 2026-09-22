@@ -127,7 +127,7 @@ export const api = {
       method: 'POST',
       body: { email, code },
     }),
-  getProfile: () => request<Profile>('/profile'),
+  getProfile: (token?: string | null) => request<Profile>('/profile', { token }),
   uploadProfile: (uri: string, name: string, type?: string) =>
     upload('/profile/upload', 'resume_file', uri, name, type),
   pasteProfile: (cv_markdown: string) =>

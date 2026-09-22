@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SESSION_KEY } from '@/lib/config';
 import { api, Profile, Session, setTokenGetter, setUnauthorizedHandler } from '@/lib/api';
 
@@ -15,6 +17,28 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+async function readSession() {
+  return Platform.OS === 'web'
+    ? AsyncStorage.getItem(SESSION_KEY)
+    : SecureStore.getItemAsync(SESSION_KEY);
+}
+
+async function writeSession(value: string) {
+  if (Platform.OS === 'web') {
+    await AsyncStorage.setItem(SESSION_KEY, value);
+  } else {
+    await SecureStore.setItemAsync(SESSION_KEY, value);
+  }
+}
+
+async function clearSession() {
+  if (Platform.OS === 'web') {
+    await AsyncStorage.removeItem(SESSION_KEY);
+  } else {
+    await SecureStore.deleteItemAsync(SESSION_KEY);
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -25,12 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null);
     setProfile(null);
     setProfileChecked(false);
-    await SecureStore.deleteItemAsync(SESSION_KEY);
+    await clearSession();
   };
 
-  const refreshProfile = async () => {
+  const refreshProfile = async (token?: string | null) => {
     try {
-      const nextProfile = await api.getProfile();
+      const nextProfile = await api.getProfile(token);
       setProfile(nextProfile);
       setProfileChecked(true);
       return nextProfile;
@@ -46,8 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (nextSession: Session) => {
     setSession(nextSession);
-    await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(nextSession));
-    await refreshProfile();
+    await writeSession(JSON.stringify(nextSession));
+    await refreshProfile(nextSession.access_token);
   };
 
   useEffect(() => {
@@ -59,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    SecureStore.getItemAsync(SESSION_KEY)
+    readSession()
       .then(async (stored) => {
         if (!active) return;
         if (!stored) {
@@ -69,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const restored = JSON.parse(stored) as Session;
         setSession(restored);
         try {
-          await refreshProfile();
+          await refreshProfile(restored.access_token);
         } catch {
           await signOut();
         } finally {

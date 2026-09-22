@@ -1,0 +1,1 @@
+- [Expo storage compatibility](expo-storage-compatibility.md) — keep native session storage secure while handling web preview shims explicitly.
