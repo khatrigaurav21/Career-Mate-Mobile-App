@@ -105,11 +105,14 @@ async function upload(path: string, field: string, uri: string, name: string, ty
   const form = new FormData();
   const file = new File(uri);
   form.append(field, file as unknown as Blob);
+  // No Content-Type here on purpose: fetch sets multipart/form-data itself
+  // with the boundary parameter the server's multipart parser needs to
+  // split fields apart. Setting it manually (even to the same-looking
+  // string) omits that boundary and the upload fails server-side.
   return request<{ profile_id: string; cv_markdown: string }>(path, {
     method: 'POST',
     body: form,
     headers: {
-      'Content-Type': 'multipart/form-data',
       ...(type ? { 'X-File-Type': type } : {}),
       ...(name ? { 'X-File-Name': name } : {}),
     },
@@ -163,7 +166,6 @@ export const api = {
           method: 'POST',
           body: form,
           headers: {
-            'Content-Type': 'multipart/form-data',
             ...(type ? { 'X-File-Type': type } : {}),
             ...(name ? { 'X-File-Name': name } : {}),
           },
@@ -198,19 +200,12 @@ export function isFallbackToPaste(error: unknown) {
 }
 
 export function getDocumentUrl(detail: JobDetail, kind: 'cv' | 'cover') {
-  const directKeys =
-    kind === 'cv'
-      ? ['cv_pdf_url', 'cv_url', 'tailored_cv_url']
-      : ['cover_letter_pdf_url', 'cover_letter_url'];
-  for (const key of directKeys) {
-    if (typeof detail[key] === 'string') return detail[key] as string;
-  }
-  const nested = detail[kind === 'cv' ? 'cv' : 'cover_letter'];
-  if (nested && typeof nested === 'object' && 'pdf_url' in nested) {
-    const url = (nested as { pdf_url?: unknown }).pdf_url;
-    return typeof url === 'string' ? url : null;
-  }
-  return null;
+  // GET /jobs/:id returns exactly these two top-level keys — pdf_url for
+  // the CV, cover_letter_url for the cover letter. No nesting, no
+  // alternate names.
+  const key = kind === 'cv' ? 'pdf_url' : 'cover_letter_url';
+  const url = detail[key];
+  return typeof url === 'string' ? url : null;
 }
 
 export async function openWithExpoFetch(url: string) {

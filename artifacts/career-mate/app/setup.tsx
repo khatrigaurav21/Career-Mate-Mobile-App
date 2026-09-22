@@ -48,18 +48,33 @@ export default function Setup() {
       } else if (mode === 'paste') {
         await api.pasteProfile(cvText.trim());
       } else {
+        // target_roles lands in a Postgres text[] column and preferences
+        // must be nested exactly like this — the backend reads
+        // answers.target_roles (array) and answers.preferences (object);
+        // anything else is either a type-mismatch insert error or silently
+        // dropped.
+        const splitList = (value: string) =>
+          value
+            .split(',')
+            .map((entry) => entry.trim())
+            .filter(Boolean);
+
         await api.intakeProfile({
-          name: form.name ?? '',
-          current_role: form.current_role ?? '',
-          years_experience: form.years_experience ?? '',
+          basic_info: {
+            name: form.name ?? '',
+            current_role: form.current_role ?? '',
+            years_experience: form.years_experience ? Number(form.years_experience) : undefined,
+          },
           work_history: form.work_history ?? '',
           education: form.education ?? '',
           skills: form.skills ?? '',
           proof_points: form.proof_points ?? '',
-          target_roles: form.target_roles ?? '',
-          location_preferences: form.location_preferences ?? '',
-          salary_preferences: form.salary_preferences ?? '',
-          avoid_preferences: form.avoid_preferences ?? '',
+          target_roles: splitList(form.target_roles ?? ''),
+          preferences: {
+            location: form.location_preferences ?? '',
+            salary_floor: form.salary_preferences ? Number(form.salary_preferences) : undefined,
+            avoid: splitList(form.avoid_preferences ?? ''),
+          },
         });
       }
       await refreshProfile();
