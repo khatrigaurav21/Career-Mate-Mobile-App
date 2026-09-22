@@ -18,7 +18,7 @@ export default function Profile() {
   return (
     <Screen>
       <PageHeader eyebrow="Your profile" title="Career context" onBack={() => router.back()} />
-      <View style={{ backgroundColor: colors.navy, borderRadius: 22, padding: 19, gap: 8 }}>
+      <View style={{ backgroundColor: colors.inkPanel, borderRadius: 22, padding: 19, gap: 8 }}>
         <Feather name="mail" size={18} color={colors.primary} />
         <Text style={{ color: colors.onNavy, fontFamily: 'Inter_600SemiBold', fontSize: 16 }}>{session?.email}</Text>
         <Text style={{ color: colors.onNavyMuted, fontFamily: 'Inter_400Regular', fontSize: 13 }}>Your CV is used to make each evaluation specific to you.</Text>

@@ -62,7 +62,7 @@ export default function Pipeline() {
               </View>
               <IconButton icon="user" onPress={() => router.push('/profile')} label="Open profile" />
             </View>
-            <View style={{ backgroundColor: colors.navy, borderRadius: 22, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 15 }}>
+            <View style={{ backgroundColor: colors.inkPanel, borderRadius: 22, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 15 }}>
               <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}><Feather name="target" size={21} color={colors.primaryForeground} /></View>
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={{ color: colors.onNavy, fontFamily: 'Inter_700Bold', fontSize: 16 }}>Have a role in mind?</Text>
