@@ -19,10 +19,18 @@
     "web": {
       "favicon": "./assets/images/icon.png"
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router"
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "509ff0ee-064d-4ed7-b819-42cebb6b6c3c"
+      }
+    },
+    "owner": "khatri.gaurav"
   }
 }
