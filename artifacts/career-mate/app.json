@@ -13,9 +13,12 @@
       "resizeMode": "contain"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.khatrigaurav.careermate"
     },
-    "android": {},
+    "android": {
+      "package": "com.khatrigaurav.careermate"
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
