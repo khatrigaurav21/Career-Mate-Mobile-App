@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.khatrigaurav.careermate"
+      "bundleIdentifier": "com.khatrigaurav.careermate",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.khatrigaurav.careermate"
