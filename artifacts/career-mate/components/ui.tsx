@@ -562,32 +562,21 @@ export function AnimatedSection({
   children: React.ReactNode;
 }) {
   const reducedMotion = useReducedMotion();
-  const progress = useSharedValue(open ? 1 : 0);
-  const [contentHeight, setContentHeight] = React.useState(0);
 
-  React.useEffect(() => {
-    if (!contentHeight) return;
-    progress.value = withTiming(open ? 1 : 0, {
-      duration: reducedMotion ? 0 : 220,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [contentHeight, open, progress, reducedMotion]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    height: contentHeight * progress.value,
-    opacity: progress.value,
-    transform: [{ translateY: (1 - progress.value) * -6 }],
-  }));
+  // mount-on-open instead of measuring and animating height: the measured
+  // version rendered at zero height in the Android release build, so every
+  // section opened empty.
+  if (!open) return null;
 
   return (
-    <Animated.View
-      style={[styles.animatedSection, animatedStyle]}
-      pointerEvents={open ? 'auto' : 'none'}
-      accessibilityElementsHidden={!open}
-      importantForAccessibility={open ? 'auto' : 'no-hide-descendants'}
+    <MotiView
+      from={reducedMotion ? { opacity: 1, translateY: 0 } : { opacity: 0, translateY: -6 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'timing', duration: reducedMotion ? 0 : 220 }}
+      style={styles.animatedSection}
     >
-      <View onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)}>{children}</View>
-    </Animated.View>
+      {children}
+    </MotiView>
   );
 }
 
