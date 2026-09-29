@@ -8,18 +8,7 @@ import { reportLabels } from '@/lib/config';
 import { useColors } from '@/hooks/useColors';
 import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, SegmentedProgress, StatusChip, WarningList } from '@/components/ui';
 import type { ProgressStep } from '@/components/ui';
-
-function renderReportText(text: string, colors: ReturnType<typeof useColors>) {
-  return text.split('\n').filter(Boolean).map((line, index) => {
-    const isBullet = /^[-*•]/.test(line.trim());
-    const isTable = line.includes('|');
-    return (
-      <Text key={`${line}-${index}`} style={{ color: colors.foreground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22, marginBottom: 7, paddingLeft: isBullet ? 4 : 0 }}>
-        {isBullet ? `• ${line.replace(/^[-*•]\s*/, '')}` : isTable ? line.replace(/\|/g, '  ·  ') : line}
-      </Text>
-    );
-  });
-}
+import { ReportView } from '@/components/ReportView';
 
 export default function JobDetail() {
   const colors = useColors();
@@ -97,13 +86,13 @@ export default function JobDetail() {
                   <View style={{ width: 27, height: 27, borderRadius: 9, backgroundColor: open ? colors.primary : colors.accent, alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ color: open ? colors.primaryForeground : colors.accentForeground, fontFamily: 'Inter_700Bold', fontSize: 12 }}>{key}</Text>
                   </View>
-                  <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>{reportLabels[key] ?? `Section ${key}`}</Text>
+                  <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 16 }}>{reportLabels[key] ?? `Section ${key}`}</Text>
                 </View>
                 <Feather name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.mutedForeground} />
               </Pressable>
                <AnimatedSection open={open}>
                  <View style={{ paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 15 }}>
-                   {renderReportText(value, colors)}
+                   <ReportView text={value} />
                  </View>
                </AnimatedSection>
             </View>

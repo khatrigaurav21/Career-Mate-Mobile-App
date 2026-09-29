@@ -42,6 +42,7 @@ const colors = {
     onNavyMuted: '#C6D0D3',
     successSoft: '#E2EFE7',
     warningSoft: '#F3E8D7',
+    destructiveSoft: '#F5E0DC',
   },
   dark: {
     text: '#F4EFE8',
@@ -72,6 +73,7 @@ const colors = {
     onNavyMuted: '#BFCACE',
     successSoft: '#21473F',
     warningSoft: '#4A3A29',
+    destructiveSoft: '#4B2C30',
   },
   radius: 18,
 };
