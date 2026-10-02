@@ -56,7 +56,12 @@ export class ApiError extends Error {
     super(
       typeof data.detail === 'string'
         ? data.detail
-        : typeof data.message === 'string'
+        : // The backend reports errors as { error }. Usage limits (429) and
+          // unreadable postings/files (422) are worded for users; other
+          // statuses can be developer-facing, so those stay generic.
+          (status === 429 || status === 422) && typeof data.error === 'string'
+          ? data.error
+          : typeof data.message === 'string'
           ? data.message
           : 'Something went wrong. Please try again.',
     );
@@ -173,6 +178,7 @@ export const api = {
       );
     })(),
   getJob: (id: string) => request<JobDetail>(`/jobs/${encodeURIComponent(id)}`),
+  deleteAccount: () => request<{ deleted: boolean }>('/account', { method: 'DELETE' }),
   deleteJob: (id: string) =>
     request<{ deleted: boolean }>(`/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   generateCv: (job_id: string) =>

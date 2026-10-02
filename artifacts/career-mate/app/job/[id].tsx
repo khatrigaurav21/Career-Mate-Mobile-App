@@ -3,13 +3,17 @@ import { Linking, Pressable, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
-import { api, getDocumentUrl } from '@/lib/api';
+import { api, getDocumentUrl, isApiError } from '@/lib/api';
 import { reportLabels } from '@/lib/config';
 import { useColors } from '@/hooks/useColors';
 import { useDeleteJob } from '@/hooks/useDeleteJob';
 import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, SegmentedProgress, StatusChip, WarningList } from '@/components/ui';
 import type { ProgressStep } from '@/components/ui';
 import { ReportView } from '@/components/ReportView';
+
+function documentErrorMessage(error: unknown) {
+  return isApiError(error) && error.status === 429 ? error.message : 'We couldn’t generate that document. You can try again.';
+}
 
 export default function JobDetail() {
   const colors = useColors();
@@ -78,7 +82,7 @@ export default function JobDetail() {
           onPress={() => coverUrl ? void Linking.openURL(coverUrl) : coverMutation.mutate()}
         />
         {coverMutation.data && <WarningList warnings={coverMutation.data.warnings} />}
-        {(cvMutation.isError || coverMutation.isError) && <ErrorNotice message="We couldn’t generate that document. You can try again." />}
+        {(cvMutation.isError || coverMutation.isError) && <ErrorNotice message={documentErrorMessage(cvMutation.error ?? coverMutation.error)} />}
       </View>
       <View style={{ gap: 12 }}>
         <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 19 }}>Your evaluation</Text>

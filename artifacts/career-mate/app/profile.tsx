@@ -1,10 +1,11 @@
-import React from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
 import { Button, PageHeader, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
+import { api } from '@/lib/api';
 
 export default function Profile() {
   const colors = useColors();
@@ -14,6 +15,37 @@ export default function Profile() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign out', style: 'destructive', onPress: async () => { await signOut(); router.replace('/login'); } },
     ]);
+  };
+  const [deleting, setDeleting] = useState(false);
+  const deleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await api.deleteAccount();
+      await signOut();
+      router.replace('/login');
+    } catch {
+      setDeleting(false);
+      Alert.alert('Couldn’t delete your account', 'Something went wrong. Please try again.');
+    }
+  };
+  // Two steps on purpose: this permanently erases everything, with no undo.
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      'Delete your account?',
+      'This permanently deletes your profile, CV, every job evaluation and all generated CVs and cover letters.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () =>
+            Alert.alert('Are you sure?', 'This can’t be undone.', [
+              { text: 'Keep my account', style: 'cancel' },
+              { text: 'Delete everything', style: 'destructive', onPress: () => void deleteAccount() },
+            ]),
+        },
+      ],
+    );
   };
   return (
     <Screen>
@@ -33,6 +65,11 @@ export default function Profile() {
       <Button onPress={() => router.push('/setup?redo=1')} variant="secondary" icon="refresh-cw">Redo profile setup</Button>
       <Pressable onPress={confirmSignOut} style={{ minHeight: 50, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ color: colors.destructive, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Sign out</Text>
+      </Pressable>
+      <Pressable onPress={confirmDeleteAccount} disabled={deleting} style={{ minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
+        {deleting
+          ? <ActivityIndicator color={colors.mutedForeground} />
+          : <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13, textDecorationLine: 'underline' }}>Delete account</Text>}
       </Pressable>
     </Screen>
   );

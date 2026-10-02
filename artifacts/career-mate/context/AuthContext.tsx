@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SESSION_KEY } from '@/lib/config';
@@ -44,11 +45,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileChecked, setProfileChecked] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const queryClient = useQueryClient();
 
   const signOut = async () => {
     setSession(null);
     setProfile(null);
     setProfileChecked(false);
+    // Cached pipeline/job data isn't keyed by user, so drop it or the next
+    // person to sign in on this device could briefly see the previous one's.
+    queryClient.clear();
     await clearSession();
   };
 
