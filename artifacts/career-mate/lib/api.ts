@@ -173,6 +173,8 @@ export const api = {
       );
     })(),
   getJob: (id: string) => request<JobDetail>(`/jobs/${encodeURIComponent(id)}`),
+  deleteJob: (id: string) =>
+    request<{ deleted: boolean }>(`/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   generateCv: (job_id: string) =>
     request<{
       pdf_url: string;

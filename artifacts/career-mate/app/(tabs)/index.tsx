@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { api, JobSummary } from '@/lib/api';
 import { useColors } from '@/hooks/useColors';
+import { useDeleteJob } from '@/hooks/useDeleteJob';
 import { Button, ErrorNotice, IconButton, ScoreRing, SectionEyebrow, StatusChip } from '@/components/ui';
 
 export default function Pipeline() {
@@ -14,10 +15,13 @@ export default function Pipeline() {
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const pipeline = useQuery({ queryKey: ['pipeline'], queryFn: api.getPipeline, enabled: !!session });
+  const { confirmDelete } = useDeleteJob();
 
   const renderJob = ({ item }: { item: JobSummary }) => (
     <Pressable
       onPress={() => router.push(`/job/${item.job_id}`)}
+      onLongPress={() => confirmDelete(item)}
+      accessibilityHint="Long press to delete"
       style={({ pressed }) => ({
         backgroundColor: colors.card,
         borderColor: colors.border,
@@ -70,7 +74,7 @@ export default function Pipeline() {
               </View>
               <Pressable onPress={() => router.push('/submit')} hitSlop={8}><Feather name="arrow-up-right" size={22} color={colors.primary} /></Pressable>
             </View>
-            {jobs.length > 0 && <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13 }}>{jobs.length} {jobs.length === 1 ? 'opportunity' : 'opportunities'} evaluated</Text>}
+            {jobs.length > 0 && <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13 }}>{jobs.length} {jobs.length === 1 ? 'opportunity' : 'opportunities'} evaluated · hold one to delete</Text>}
           </View>
         }
         ListEmptyComponent={

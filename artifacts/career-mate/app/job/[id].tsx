@@ -6,6 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { api, getDocumentUrl } from '@/lib/api';
 import { reportLabels } from '@/lib/config';
 import { useColors } from '@/hooks/useColors';
+import { useDeleteJob } from '@/hooks/useDeleteJob';
 import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, SegmentedProgress, StatusChip, WarningList } from '@/components/ui';
 import type { ProgressStep } from '@/components/ui';
 import { ReportView } from '@/components/ReportView';
@@ -17,6 +18,7 @@ export default function JobDetail() {
   const job = useQuery({ queryKey: ['job', id], queryFn: () => api.getJob(id), enabled: !!id });
   const cvMutation = useMutation({ mutationFn: () => api.generateCv(id) });
   const coverMutation = useMutation({ mutationFn: () => api.generateCoverLetter(id) });
+  const { confirmDelete, isDeleting } = useDeleteJob();
 
   if (job.isLoading) return <Screen scroll={false}><LoadingState title="Opening your evaluation" detail="Gathering the role match and recommendations." /></Screen>;
   if (job.isError || !job.data) return <Screen><IconButton icon="arrow-left" onPress={() => router.back()} label="Go back" /><ErrorNotice message={job.error instanceof Error ? job.error.message : 'We could not load this evaluation.'} onRetry={() => void job.refetch()} /></Screen>;
@@ -30,7 +32,10 @@ export default function JobDetail() {
     <Screen>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <IconButton icon="arrow-left" onPress={() => router.back()} label="Go back" />
-        <IconButton icon="share-2" onPress={() => { if (cvUrl) void Linking.openURL(cvUrl); }} label="Open document" />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <IconButton icon="share-2" onPress={() => { if (cvUrl) void Linking.openURL(cvUrl); }} label="Open document" />
+          <IconButton icon="trash-2" onPress={() => { if (!isDeleting) confirmDelete(data, () => router.back()); }} label="Delete job" />
+        </View>
       </View>
       <View style={{ gap: 5 }}>
         <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13 }}>{data.company || 'Company not listed'}</Text>
