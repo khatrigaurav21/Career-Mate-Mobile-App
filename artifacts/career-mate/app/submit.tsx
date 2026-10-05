@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
 import { Button, ChoiceTile, ErrorNotice, Field, LoadingNotice, PageHeader, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api, isFallbackToPaste } from '@/lib/api';
@@ -10,9 +11,12 @@ type SubmitMode = 'link' | 'paste' | 'file';
 
 export default function SubmitJob() {
   const colors = useColors();
-  const [mode, setMode] = useState<SubmitMode>('link');
-  const [url, setUrl] = useState('');
-  const [description, setDescription] = useState('');
+  // Filled in when a job is shared from another app (see ShareIntentHandler).
+  const { sharedUrl, sharedText } = useLocalSearchParams<{ sharedUrl?: string; sharedText?: string }>();
+  const fromShare = Boolean(sharedUrl || sharedText);
+  const [mode, setMode] = useState<SubmitMode>(sharedText && !sharedUrl ? 'paste' : 'link');
+  const [url, setUrl] = useState(sharedUrl ?? '');
+  const [description, setDescription] = useState(sharedText ?? '');
   const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -54,6 +58,12 @@ export default function SubmitJob() {
   return (
     <Screen>
       <PageHeader eyebrow="New evaluation" title="Find the signal" subtitle="Give us the role in whichever format you have. We’ll do the reading." onBack={() => router.back()} />
+      {fromShare && (
+        <View style={{ backgroundColor: colors.accent, borderRadius: 14, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+          <Feather name="share" size={18} color={colors.accentForeground} />
+          <Text style={{ color: colors.accentForeground, fontFamily: 'Inter_500Medium', fontSize: 14, lineHeight: 20, flex: 1 }}>Shared from another app. Check it below, then tap Evaluate.</Text>
+        </View>
+      )}
       <View style={{ flexDirection: 'row', gap: 9 }}>
         <ChoiceTile icon="link" label="Paste a link" caption="We’ll fetch the posting" selected={mode === 'link'} onPress={() => { setMode('link'); setError(''); }} />
         <ChoiceTile icon="edit-3" label="Paste text" caption="Use the full description" selected={mode === 'paste'} onPress={() => { setMode('paste'); setError(''); }} />

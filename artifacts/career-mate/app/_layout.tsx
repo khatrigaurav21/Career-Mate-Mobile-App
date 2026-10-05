@@ -14,6 +14,8 @@ import {
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/context/AuthContext';
+import { ShareIntentProvider } from 'expo-share-intent';
+import { ShareIntentHandler } from '@/components/ShareIntentHandler';
 import { setBaseUrl } from '@workspace/api-client-react';
 import { initErrorReporting, wrapRoot } from '@/lib/errorReporting';
 
@@ -46,6 +48,7 @@ function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
+    <ShareIntentProvider>
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
@@ -53,12 +56,14 @@ function RootLayout() {
             <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
                 <RootLayoutNav />
+                <ShareIntentHandler />
               </KeyboardProvider>
             </GestureHandlerRootView>
           </AuthProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>
+    </ShareIntentProvider>
   );
 }
 

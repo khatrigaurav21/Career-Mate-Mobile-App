@@ -27,7 +27,16 @@
     },
     "plugins": [
       "expo-router",
-      "@sentry/react-native"
+      "@sentry/react-native",
+      [
+        "expo-share-intent",
+        {
+          "androidIntentFilters": [
+            "text/*"
+          ],
+          "disableIOS": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
