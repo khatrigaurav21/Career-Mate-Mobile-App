@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Linking, Pressable, Text, View } from 'react-native';
+import { Linking, Pressable, Share, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
@@ -38,7 +38,15 @@ export default function JobDetail() {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <IconButton icon="arrow-left" onPress={() => router.back()} label="Go back" />
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <IconButton icon="share-2" onPress={() => { if (cvUrl) void Linking.openURL(cvUrl); }} label="Open document" />
+          {cvUrl && (
+            // Opens the phone's share sheet with the tailored CV's link (it used
+            // to just open the PDF, which looked like a broken share button).
+            <IconButton
+              icon="share-2"
+              onPress={() => void Share.share({ title: `${data.title || 'Tailored'} CV`, message: cvUrl, url: cvUrl }).catch(() => {})}
+              label="Share tailored CV"
+            />
+          )}
           <IconButton icon="trash-2" onPress={() => { if (!isDeleting) confirmDelete(data, () => router.back()); }} label="Delete job" />
         </View>
       </View>
