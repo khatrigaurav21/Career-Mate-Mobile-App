@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Button, ChoiceTile, ErrorNotice, Field, LoadingNotice, PageHeader, Screen } from '@/components/ui';
@@ -46,7 +47,10 @@ export default function SubmitJob() {
     } catch (submitError) {
       if (isFallbackToPaste(submitError)) {
         setMode('paste');
-        setError('We could not read that posting. Paste the job description instead and we’ll continue.');
+        // The server says why (e.g. "Seek doesn't let apps read its job ads…").
+        setError(submitError instanceof Error && submitError.message !== 'Something went wrong. Please try again.'
+          ? submitError.message
+          : 'We could not read that posting. Paste the job description instead and we’ll continue.');
       } else {
         setError(submitError instanceof Error ? submitError.message : 'We could not evaluate that job.');
       }
@@ -70,6 +74,23 @@ export default function SubmitJob() {
         <ChoiceTile icon="upload" label="Upload file" caption="PDF, DOCX, or text" selected={mode === 'file'} onPress={() => { setMode('file'); setError(''); }} />
       </View>
       {mode === 'link' && <Field label="Job posting URL" placeholder="https://company.com/jobs/role" value={url} onChangeText={setUrl} keyboardType="url" autoCapitalize="none" autoCorrect={false} />}
+      {mode === 'paste' && (
+        <Button
+          variant="secondary"
+          icon="clipboard"
+          onPress={async () => {
+            const copied = (await Clipboard.getStringAsync()).trim();
+            if (copied) {
+              setDescription(copied);
+              setError('');
+            } else {
+              setError('Your clipboard is empty. Copy the job description first, then tap Paste again.');
+            }
+          }}
+        >
+          Paste from clipboard
+        </Button>
+      )}
       {mode === 'paste' && <Field label="Job description" placeholder="Paste the full job posting here..." value={description} onChangeText={setDescription} multiline helper="The more context you share, the more useful the evaluation." />}
       {mode === 'file' && (
         <View style={{ borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, padding: 18, gap: 15 }}>
