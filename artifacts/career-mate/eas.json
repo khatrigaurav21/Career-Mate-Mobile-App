@@ -15,7 +15,7 @@
       },
       "env": {
         "SENTRY_DISABLE_AUTO_UPLOAD": "true",
-        "EXPO_PUBLIC_SENTRY_DSN": ""
+        "EXPO_PUBLIC_SENTRY_DSN": "https://35b309e4ade04bac5e4c4f34d6c7d6dc@o4512201851535360.ingest.us.sentry.io/4512201948790784"
       }
     },
     "production": {
@@ -25,7 +25,7 @@
       },
       "env": {
         "SENTRY_DISABLE_AUTO_UPLOAD": "true",
-        "EXPO_PUBLIC_SENTRY_DSN": ""
+        "EXPO_PUBLIC_SENTRY_DSN": "https://35b309e4ade04bac5e4c4f34d6c7d6dc@o4512201851535360.ingest.us.sentry.io/4512201948790784"
       }
     }
   },
