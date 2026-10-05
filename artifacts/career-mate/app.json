@@ -26,7 +26,8 @@
       "favicon": "./assets/images/icon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true,

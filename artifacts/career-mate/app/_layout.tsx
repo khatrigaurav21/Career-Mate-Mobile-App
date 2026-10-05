@@ -15,6 +15,9 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/context/AuthContext';
 import { setBaseUrl } from '@workspace/api-client-react';
+import { initErrorReporting, wrapRoot } from '@/lib/errorReporting';
+
+initErrorReporting();
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -26,7 +29,7 @@ function RootLayoutNav() {
   return <Stack screenOptions={{ headerShown: false, headerBackTitle: 'Back' }} />;
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -58,3 +61,5 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+export default wrapRoot(RootLayout);

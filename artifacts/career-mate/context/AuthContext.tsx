@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
+import { setErrorReportingUser } from '@/lib/errorReporting';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SESSION_KEY } from '@/lib/config';
@@ -113,6 +114,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       active = false;
     };
   }, []);
+
+  // Lets Sentry group errors by (anonymous) user, never by email.
+  useEffect(() => {
+    setErrorReportingUser(session?.user_id ?? null);
+  }, [session?.user_id]);
 
   const value = useMemo(
     () => ({ session, profile, profileChecked, hydrated, signIn, refreshProfile, signOut }),
