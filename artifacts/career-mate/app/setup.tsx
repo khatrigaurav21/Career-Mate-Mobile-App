@@ -5,6 +5,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Button, ChoiceTile, ErrorNotice, Field, LoadingNotice, PageHeader, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api, isFallbackToPaste } from '@/lib/api';
+import type { WorkRights } from '@/lib/api';
+import { WorkRightsPicker } from '@/components/WorkRights';
 import { useAuth } from '@/context/AuthContext';
 
 type SetupMode = 'upload' | 'paste' | 'guided';
@@ -19,6 +21,7 @@ export default function Setup() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [workRights, setWorkRights] = useState<WorkRights | null>(null);
 
   const update = (key: string, value: string) => setForm((current) => ({ ...current, [key]: value }));
 
@@ -77,6 +80,11 @@ export default function Setup() {
           },
         });
       }
+      if (workRights) {
+        // Optional and separate: if it fails the profile still exists, and
+        // the user can set it from Profile.
+        await api.setWorkRights(workRights).catch(() => {});
+      }
       await refreshProfile();
       router.replace('/(tabs)');
     } catch (submitError) {
@@ -130,6 +138,13 @@ export default function Setup() {
           <Field label="Target roles" placeholder="Senior product designer, design lead" value={form.target_roles ?? ''} onChangeText={(value) => update('target_roles', value)} />
           <Field label="Location and salary preferences" placeholder="Remote, Darwin; $120k+" value={form.location_preferences ?? ''} onChangeText={(value) => update('location_preferences', value)} />
           <Field label="Anything to avoid?" placeholder="Industries, travel, or work patterns" value={form.avoid_preferences ?? ''} onChangeText={(value) => update('avoid_preferences', value)} />
+        </View>
+      )}
+      {!params.redo && (
+        <View style={{ gap: 10 }}>
+          <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 17 }}>Your work rights in Australia</Text>
+          <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20 }}>Optional, but it lets us flag jobs your visa doesn't allow. You can change it later in Profile.</Text>
+          <WorkRightsPicker value={workRights} onChange={setWorkRights} />
         </View>
       )}
       {loading && mode === 'guided' && (

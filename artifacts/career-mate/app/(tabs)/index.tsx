@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { api, JobSummary } from '@/lib/api';
 import { useColors } from '@/hooks/useColors';
 import { useDeleteJob } from '@/hooks/useDeleteJob';
+import { WorkRightsChip } from '@/components/WorkRights';
 import { Button, ErrorNotice, IconButton, ScoreRing, SectionEyebrow, StatusChip } from '@/components/ui';
 
 export default function Pipeline() {
@@ -38,7 +39,10 @@ export default function Pipeline() {
       <View style={{ flex: 1, gap: 5 }}>
         <Text numberOfLines={1} style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 16 }}>{item.title || 'Untitled role'}</Text>
         <Text numberOfLines={1} style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13 }}>{item.company || 'Company not listed'}</Text>
-        <StatusChip tone={item.status === 'complete' ? 'success' : 'warning'}>{item.status || 'Processing'}</StatusChip>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          <StatusChip tone={item.status === 'complete' ? 'success' : 'warning'}>{item.status || 'Processing'}</StatusChip>
+          <WorkRightsChip verdict={item.work_rights_verdict} />
+        </View>
       </View>
       <Feather name="chevron-right" size={19} color={colors.mutedForeground} />
     </Pressable>

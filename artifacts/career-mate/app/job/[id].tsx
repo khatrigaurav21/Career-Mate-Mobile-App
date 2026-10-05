@@ -10,6 +10,7 @@ import { useDeleteJob } from '@/hooks/useDeleteJob';
 import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, SegmentedProgress, StatusChip, WarningList } from '@/components/ui';
 import type { ProgressStep } from '@/components/ui';
 import { ReportView } from '@/components/ReportView';
+import { WorkRightsBanner } from '@/components/WorkRights';
 
 function documentErrorMessage(error: unknown) {
   return isApiError(error) && error.status === 429 ? error.message : 'We couldn’t generate that document. You can try again.';
@@ -45,6 +46,7 @@ export default function JobDetail() {
         <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13 }}>{data.company || 'Company not listed'}</Text>
         <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 29, lineHeight: 35, letterSpacing: -0.8 }}>{data.title || 'Untitled role'}</Text>
       </View>
+      {data.work_rights && <WorkRightsBanner workRights={data.work_rights} />}
       <View style={{ borderRadius: 24, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 18 }}>
         <ScoreRing score={data.score} size={92} mutedColor={colors.mutedForeground} />
         <View style={{ flex: 1, gap: 6 }}>

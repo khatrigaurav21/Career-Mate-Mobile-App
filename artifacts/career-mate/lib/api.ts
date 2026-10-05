@@ -9,16 +9,23 @@ export type Profile = {
   preferences: Record<string, unknown> | null;
 };
 
+export type WorkRightsStatus = 'citizen_pr' | 'visa_491' | 'visa_494' | 'needs_sponsorship' | 'other';
+export type WorkRights = { status: WorkRightsStatus; note: string };
+export type WorkRightsVerdict = 'eligible' | 'check' | 'not_eligible' | 'unknown';
+export type WorkRightsResult = { verdict: WorkRightsVerdict; summary: string; evidence: string };
+
 export type JobSummary = {
   job_id: string;
   company: string | null;
   title: string | null;
   score: number | null;
   status: string;
+  work_rights_verdict?: WorkRightsVerdict | null;
 };
 
 export type JobDetail = JobSummary & {
   report: Record<string, string>;
+  work_rights?: WorkRightsResult | null;
   [key: string]: unknown;
 };
 
@@ -178,6 +185,8 @@ export const api = {
       );
     })(),
   getJob: (id: string) => request<JobDetail>(`/jobs/${encodeURIComponent(id)}`),
+  setWorkRights: (workRights: WorkRights) =>
+    request<{ work_rights: WorkRights }>('/profile/work-rights', { method: 'PUT', body: workRights }),
   deleteAccount: () => request<{ deleted: boolean }>('/account', { method: 'DELETE' }),
   deleteJob: (id: string) =>
     request<{ deleted: boolean }>(`/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }),

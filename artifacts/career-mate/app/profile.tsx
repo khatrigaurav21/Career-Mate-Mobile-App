@@ -6,12 +6,31 @@ import { useAuth } from '@/context/AuthContext';
 import { Button, PageHeader, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api } from '@/lib/api';
+import type { WorkRights } from '@/lib/api';
+import { WorkRightsPicker, workRightsLabel } from '@/components/WorkRights';
 import * as WebBrowser from 'expo-web-browser';
 import { PRIVACY_POLICY_URL } from '@/lib/config';
 
 export default function Profile() {
   const colors = useColors();
-  const { profile, session, signOut } = useAuth();
+  const { profile, session, signOut, refreshProfile } = useAuth();
+  const savedWorkRights = (profile?.preferences?.work_rights as WorkRights | undefined) ?? null;
+  const [editingRights, setEditingRights] = useState(false);
+  const [draftRights, setDraftRights] = useState<WorkRights | null>(savedWorkRights);
+  const [savingRights, setSavingRights] = useState(false);
+  const saveWorkRights = async () => {
+    if (!draftRights) return;
+    setSavingRights(true);
+    try {
+      await api.setWorkRights(draftRights);
+      await refreshProfile();
+      setEditingRights(false);
+    } catch {
+      Alert.alert('Couldn’t save', 'Something went wrong. Please try again.');
+    } finally {
+      setSavingRights(false);
+    }
+  };
   const confirmSignOut = () => {
     Alert.alert('Sign out?', 'You can come back anytime with another one-time code.', [
       { text: 'Cancel', style: 'cancel' },
@@ -63,6 +82,28 @@ export default function Profile() {
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}><Feather name="check-circle" size={19} color={colors.success} /><Text style={{ color: colors.foreground, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Profile is ready</Text></View>
           <Text numberOfLines={4} style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 20 }}>{profile?.cv_markdown || 'Your profile is ready for evaluations.'}</Text>
         </View>
+      </View>
+      <View style={{ gap: 11 }}>
+        <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 19 }}>Work rights</Text>
+        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20 }}>Each job is checked against this, so you know straight away whether you can legally take it.</Text>
+        {editingRights ? (
+          <>
+            <WorkRightsPicker value={draftRights} onChange={setDraftRights} />
+            <Button onPress={() => void saveWorkRights()} loading={savingRights} icon="check">Save work rights</Button>
+            <Pressable onPress={() => { setDraftRights(savedWorkRights); setEditingRights(false); }} style={{ minHeight: 40, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 14 }}>Cancel</Text>
+            </Pressable>
+          </>
+        ) : (
+          <Pressable onPress={() => { setDraftRights(savedWorkRights); setEditingRights(true); }} accessibilityRole="button" style={{ borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Feather name="globe" size={19} color={savedWorkRights ? colors.teal : colors.warning} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={{ color: colors.foreground, fontFamily: 'Inter_600SemiBold', fontSize: 15 }}>{workRightsLabel(savedWorkRights?.status)}</Text>
+              {savedWorkRights?.note ? <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13 }}>{savedWorkRights.note}</Text> : null}
+            </View>
+            <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>{savedWorkRights ? 'Change' : 'Set'}</Text>
+          </Pressable>
+        )}
       </View>
       <Button onPress={() => router.push('/setup?redo=1')} variant="secondary" icon="refresh-cw">Redo profile setup</Button>
       <Pressable onPress={confirmSignOut} style={{ minHeight: 50, alignItems: 'center', justifyContent: 'center' }}>
