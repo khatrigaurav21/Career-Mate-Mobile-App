@@ -7,6 +7,8 @@ import { useColors } from '@/hooks/useColors';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as WebBrowser from 'expo-web-browser';
+import { PRIVACY_POLICY_URL } from '@/lib/config';
 
 export default function Login() {
   const colors = useColors();
@@ -113,7 +115,10 @@ export default function Login() {
           {error && <ErrorNotice message={error} />}
         </View>
       </View>
-      <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 11, textAlign: 'center' }}>By continuing, you agree to use Career Mate for your own career materials</Text>
+      <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 17, textAlign: 'center' }}>
+        By continuing, you agree to use Career Mate for your own career materials. See our{' '}
+        <Text onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} style={{ color: colors.primary, textDecorationLine: 'underline' }} accessibilityRole="link">Privacy Policy</Text>.
+      </Text>
     </KeyboardAwareScrollViewCompat>
   );
 }

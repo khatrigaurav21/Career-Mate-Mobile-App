@@ -2,6 +2,8 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_CAREER_MATE_API_URL ??
   'https://career-mate-api.onrender.com';
 
+export const PRIVACY_POLICY_URL = `${API_BASE_URL}/privacy`;
+
 export const SESSION_KEY = 'career_mate_session';
 
 export const reportLabels: Record<string, string> = {

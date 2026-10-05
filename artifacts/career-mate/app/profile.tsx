@@ -6,6 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Button, PageHeader, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { api } from '@/lib/api';
+import * as WebBrowser from 'expo-web-browser';
+import { PRIVACY_POLICY_URL } from '@/lib/config';
 
 export default function Profile() {
   const colors = useColors();
@@ -65,6 +67,9 @@ export default function Profile() {
       <Button onPress={() => router.push('/setup?redo=1')} variant="secondary" icon="refresh-cw">Redo profile setup</Button>
       <Pressable onPress={confirmSignOut} style={{ minHeight: 50, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ color: colors.destructive, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Sign out</Text>
+      </Pressable>
+      <Pressable onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} accessibilityRole="link" style={{ minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13 }}>Privacy Policy</Text>
       </Pressable>
       <Pressable onPress={confirmDeleteAccount} disabled={deleting} style={{ minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
         {deleting
