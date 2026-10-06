@@ -21,7 +21,10 @@ export function ShareIntentHandler() {
     const url = shareIntent.webUrl ?? text.match(URL_IN_TEXT)?.[0] ?? null;
     resetShareIntent();
     if (!url && !text) return;
-    router.push({ pathname: '/submit', params: url ? { sharedUrl: url } : { sharedText: text } });
+    // shareId lets the Evaluate tab, which stays mounted, tell a new share
+    // apart from the last one, even when the same link is shared twice.
+    const shareId = String(Date.now());
+    router.push({ pathname: '/submit', params: url ? { sharedUrl: url, shareId } : { sharedText: text, shareId } });
   }, [hasShareIntent, shareIntent, hydrated, session, profileChecked, profile, resetShareIntent]);
 
   return null;

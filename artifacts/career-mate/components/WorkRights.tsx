@@ -109,16 +109,3 @@ export function WorkRightsBanner({ workRights }: { workRights: { verdict: WorkRi
     </View>
   );
 }
-
-// Only flags problems on pipeline cards; "eligible" stays quiet to avoid clutter.
-export function WorkRightsChip({ verdict }: { verdict?: WorkRightsVerdict | null }) {
-  const colors = useColors();
-  if (verdict !== 'not_eligible' && verdict !== 'check') return null;
-  const { bg, fg } = toneColors(colors, verdict === 'not_eligible' ? 'bad' : 'mid');
-  return (
-    <View style={{ backgroundColor: bg, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-      <Feather name={verdict === 'not_eligible' ? 'x-circle' : 'alert-circle'} size={12} color={fg} />
-      <Text style={{ color: fg, fontFamily: 'Inter_600SemiBold', fontSize: 12 }}>{verdict === 'not_eligible' ? 'Not on your visa' : 'Check visa'}</Text>
-    </View>
-  );
-}

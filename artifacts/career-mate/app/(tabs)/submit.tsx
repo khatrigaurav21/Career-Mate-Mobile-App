@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Clipboard from 'expo-clipboard';
@@ -13,12 +13,32 @@ type SubmitMode = 'link' | 'paste' | 'file';
 export default function SubmitJob() {
   const colors = useColors();
   // Filled in when a job is shared from another app (see ShareIntentHandler).
-  const { sharedUrl, sharedText } = useLocalSearchParams<{ sharedUrl?: string; sharedText?: string }>();
-  const fromShare = Boolean(sharedUrl || sharedText);
-  const [mode, setMode] = useState<SubmitMode>(sharedText && !sharedUrl ? 'paste' : 'link');
-  const [url, setUrl] = useState(sharedUrl ?? '');
-  const [description, setDescription] = useState(sharedText ?? '');
+  const { sharedUrl, sharedText, shareId } = useLocalSearchParams<{ sharedUrl?: string; sharedText?: string; shareId?: string }>();
+  const [fromShare, setFromShare] = useState(false);
+  const [mode, setMode] = useState<SubmitMode>('link');
+  const [url, setUrl] = useState('');
+  const [description, setDescription] = useState('');
   const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+
+  // This screen is a tab, so it stays mounted: apply each new share when it
+  // arrives rather than only on first render.
+  useEffect(() => {
+    if (!shareId || (!sharedUrl && !sharedText)) return;
+    setMode(sharedUrl ? 'link' : 'paste');
+    setUrl(sharedUrl ?? '');
+    setDescription(sharedUrl ? '' : sharedText ?? '');
+    setFile(null);
+    setError('');
+    setFromShare(true);
+  }, [shareId, sharedUrl, sharedText]);
+
+  const resetForm = () => {
+    setUrl('');
+    setDescription('');
+    setFile(null);
+    setFromShare(false);
+    router.setParams({ sharedUrl: undefined, sharedText: undefined, shareId: undefined });
+  };
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -43,7 +63,8 @@ export default function SubmitJob() {
         : mode === 'paste'
           ? await api.evaluateText(description.trim())
           : await api.evaluateFile(file!.uri, file!.name, file!.mimeType);
-      router.replace(`/job/${result.job_id}`);
+      resetForm();
+      router.push(`/job/${result.job_id}`);
     } catch (submitError) {
       if (isFallbackToPaste(submitError)) {
         setMode('paste');

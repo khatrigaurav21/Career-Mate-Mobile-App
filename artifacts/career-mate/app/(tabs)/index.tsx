@@ -41,8 +41,8 @@ export default function Pipeline() {
     >
       <PipelineScore score={item.score} />
       <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-        <Text numberOfLines={1} style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 14, lineHeight: 18 }}>{item.title || 'Untitled role'}</Text>
-        <Text numberOfLines={1} style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 15 }}>{item.company || 'Company not listed'}</Text>
+        <Text numberOfLines={1} style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 16, lineHeight: 21 }}>{item.title || 'Untitled role'}</Text>
+        <Text numberOfLines={1} style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 19 }}>{item.company || 'Company not listed'}</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 2 }}>
           <JobStatusPill status={item.status} />
           <WorkRightsPill verdict={item.work_rights_verdict} />
@@ -141,7 +141,8 @@ function PipelineScore({ score }: { score: number | null }) {
 function JobStatusPill({ status }: { status: string }) {
   const value = status?.trim().toLowerCase() || 'processing';
   const colors = useColors();
-  const isComplete = value === 'complete';
+  // The API marks finished evaluations 'evaluated'; older rows say 'complete'.
+  const isComplete = value === 'complete' || value === 'evaluated';
   const isFailed = value === 'failed' || value === 'error';
   const tone = isComplete
     ? { foreground: colors.success, background: colors.successSoft, icon: 'check' as const }
@@ -154,13 +155,16 @@ function JobStatusPill({ status }: { status: string }) {
 
 function WorkRightsPill({ verdict }: { verdict?: WorkRightsVerdict | null }) {
   const colors = useColors();
+  // No verdict means the job was evaluated before the work-rights check
+  // existed, not that the user hasn't set their rights, so show nothing.
+  if (!verdict) return null;
   const tone = verdict === 'eligible'
     ? { label: 'Eligible', foreground: colors.success, background: colors.successSoft, icon: 'shield' as const }
     : verdict === 'check'
       ? { label: 'Check details', foreground: colors.warning, background: colors.warningSoft, icon: 'alert-circle' as const }
       : verdict === 'not_eligible'
         ? { label: 'Not eligible', foreground: colors.destructive, background: colors.destructiveSoft, icon: 'x-circle' as const }
-        : { label: 'Rights not set', foreground: colors.mutedForeground, background: colors.muted, icon: 'help-circle' as const };
+        : { label: 'Work rights not set', foreground: colors.mutedForeground, background: colors.muted, icon: 'help-circle' as const };
   return <CompactPill label={tone.label} icon={tone.icon} foreground={tone.foreground} background={tone.background} />;
 }
 
@@ -176,9 +180,9 @@ function CompactPill({
   background: string;
 }) {
   return (
-    <View style={{ minHeight: 19, paddingVertical: 3, paddingHorizontal: 7, borderRadius: 99, backgroundColor: background, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-      <Feather name={icon} size={10} color={foreground} />
-      <Text numberOfLines={1} style={{ color: foreground, fontFamily: 'Inter_600SemiBold', fontSize: 9, lineHeight: 12 }}>{label}</Text>
+    <View style={{ minHeight: 24, paddingVertical: 3, paddingHorizontal: 9, borderRadius: 99, backgroundColor: background, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+      <Feather name={icon} size={13} color={foreground} />
+      <Text numberOfLines={1} style={{ color: foreground, fontFamily: 'Inter_600SemiBold', fontSize: 12, lineHeight: 16 }}>{label}</Text>
     </View>
   );
 }
