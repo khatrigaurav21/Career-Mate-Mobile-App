@@ -1,9 +1,11 @@
 # Career Mate — Design
 
 How the Career Mate mobile app looks and behaves, written from the code as of
-2026-10-06. If this file and the code disagree, the code wins — update this
-file. Tokens live in `constants/colors.ts`; shared components in
-`components/ui.tsx`.
+2026-10-06 (updated for the Stitch "Warm Editorial Career Coach" redesign).
+If this file and the code disagree, the code wins — update this file.
+Colours live in `constants/colors.ts`, the type scale in
+`constants/typography.ts` (use `type.*`, not ad-hoc font sizes), shared
+components in `components/ui.tsx`.
 
 ## Product and tone
 
@@ -46,15 +48,16 @@ Rules:
 Font: **Inter** (`@expo-google-fonts/inter`) — 400 Regular, 500 Medium,
 600 SemiBold, 700 Bold.
 
-| Role | Size / line height | Weight |
-|---|---|---|
-| Screen title (login hero) | 34 / 40, letter-spacing −1.2 | Bold |
-| Page title | 28–30 | Bold |
-| Section title | 18–19 | Bold, with a teal icon |
-| Card / job title | 16 / 21 | Bold |
-| Body / report text | 16 / 24 | Regular |
-| Secondary text, company names | 14 / 19 | Regular |
-| Pills, chips, captions | 12 / 16 minimum | SemiBold |
+| Token (`type.*`) | Size / line height | Weight | Use |
+|---|---|---|---|
+| `headlineHero` | 34 / 40, −1.2 | Bold | Login hero |
+| `headlineLg` | 28 / 34, −0.5 | Bold | Page titles |
+| `headlineMd` | 22 / 28 | Bold | Big numbers (scores, stat tiles) |
+| `headlineSm` | 18 / 24 | Bold | Section titles (with a teal icon) |
+| `titleCard` | 16 / 22 | Bold | Card and job titles |
+| `bodyLg` | 16 / 24 | Regular | Body, report text, page subtitles |
+| `bodyMd` / `bodySemibold` | 14 / 20 | Regular / SemiBold | Secondary text, buttons in cards |
+| `labelPill` / `labelEyebrow` / `labelCaption` | 12 / 16 | SemiBold / Bold caps / Medium | Pills, eyebrows, captions |
 
 **Minimum size is 12pt.** Body and card titles are 16pt. The user has
 explicitly flagged tiny text as a problem — don't go below these.
@@ -69,8 +72,15 @@ explicitly flagged tiny text as a problem — don't go below these.
 ## Navigation
 
 Three persistent tabs (native tabs): **Home** (pipeline), **Evaluate** (add a
-job), **Profile**. Stack screens on top: Login (one-time code), Setup
-(upload / paste / guided Q&A), Job detail.
+job), **Profile**, each topped by `AppHeader` (brand mark, "Career Mate" +
+section name, initials avatar → Profile). Stack screens on top: Login
+(one-time code), Setup (upload / paste / guided Q&A), Job detail.
+
+- **Home:** visa card (from saved work rights, or a "set your work rights" prompt), three stat tiles (Evaluated / High match 4.0+ / CV ready), All / CV-ready filter, job cards (verdict pill, title, company, square score badge, status line, action button), and a dark "Found a role you like?" card with honest Seek guidance.
+- **Evaluate:** Link / Paste text / Upload segmented control, Paste-from-clipboard, a coach note naming the user's visa, "Run evaluation", and Recent assessments.
+- **Profile:** account card, dark work-rights panel (where you can work / who you can work for, per visa type), CV card, preferences list, "guidance only" note, privacy / sign out / delete account.
+
+Rules from the redesign: the card body and its action button are siblings, never nested buttons; a job the user can't legally take never gets the coral "Tailor CV" call to action (it shows "Review").
 
 ## Key components (`components/`)
 
@@ -82,6 +92,8 @@ job), **Profile**. Stack screens on top: Login (one-time code), Setup
 | `ScoreRing` | Fit score out of 5 on job detail (Home uses a compact `PipelineScore`) |
 | `StatusChip`, Home `CompactPill` | Small status labels |
 | `ReportView` | Renders the A–H evaluation: requirement-match table as cards with coloured Importance/Match chips, fact rows, TL;DR callout, numbered lists |
+| `AppHeader` | Shared tab header with initials avatar (`initialsFromEmail`) |
+| `VISA_SUMMARY` (in `WorkRights.tsx`) | One source of plain-English visa text (title, where you can work, who you can work for) used by Home and Profile; mirrors the API's rules |
 | `WorkRightsBanner` / `WorkRightsPicker` | Visa/work-rights verdict on job detail (eligible / check / not allowed / not set + JD quote + "guidance only") and the picker in Profile/Setup |
 | `AnimatedSection` | Collapsible report sections (mount-on-open) |
 | `SegmentedProgress`, `LoadingNotice` | Progress for slow operations (evaluation ~1–2 min) |
@@ -99,11 +111,19 @@ job), **Profile**. Stack screens on top: Login (one-time code), Setup
 - Pickers use radio semantics; banners use icon + text + colour.
 - Long-press actions have an `accessibilityHint` and a visible alternative (e.g. delete via the bin icon on job detail).
 
-## Known gaps (as of this file)
+## Copy rules (from reviewing the Stitch mockups)
 
-Still below the 12pt minimum, to fix in the next UI pass:
-- `components/ui.tsx` styles: `choiceCaption` 10, `statusChipText` 10, `progressLabel` 11, `progressMeta` 10, `scoreOutOf` 10.
-- `app/(tabs)/index.tsx` `PipelineScore` "/5" label (8pt) and the login screen footer (11pt).
+Never claim what the app doesn't do: no "verified", "compliant", "accredited",
+postcode checks, closing dates, apply buttons, notifications or visa expiry.
+Seek links can't be read by the server — always say "copy the description and
+paste it" for Seek. Visa text must differ by visa type (494 is tied to the
+sponsoring employer). Every visa verdict carries "guidance only".
+
+## Known gaps
+
+None below 12pt as of the redesign. Not yet built from the Stitch mockups:
+a location pill on job cards (needs the evaluation to store the job's
+location) and the CV file name (only the text is stored).
 
 ## Don't change in a visual pass
 

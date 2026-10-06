@@ -41,6 +41,16 @@ async function clearSession() {
   }
 }
 
+// The API client must have the token before React re-renders with the new
+// session: screens' queries run in child effects, which fire before this
+// provider's effects, so setting the token in an effect let the first request
+// after a restore go out without it (401 -> signed out). Call this alongside
+// every setSession.
+function applySessionToken(session: Session | null) {
+  const token = session?.access_token ?? null;
+  setTokenGetter(() => token);
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -49,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
 
   const signOut = async () => {
+    applySessionToken(null);
     setSession(null);
     setProfile(null);
     setProfileChecked(false);
@@ -75,13 +86,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (nextSession: Session) => {
+    applySessionToken(nextSession);
     setSession(nextSession);
     await writeSession(JSON.stringify(nextSession));
     await refreshProfile(nextSession.access_token);
   };
 
   useEffect(() => {
-    setTokenGetter(() => session?.access_token ?? null);
     setUnauthorizedHandler(() => {
       void signOut();
     });
@@ -97,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         const restored = JSON.parse(stored) as Session;
+        applySessionToken(restored);
         setSession(restored);
         try {
           await refreshProfile(restored.access_token);

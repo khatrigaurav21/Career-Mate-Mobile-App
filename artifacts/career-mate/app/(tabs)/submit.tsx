@@ -1,17 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
-import { Button, ChoiceTile, ErrorNotice, Field, LoadingNotice, PageHeader, Screen } from '@/components/ui';
+import { Button, ErrorNotice, Field, LoadingNotice, Screen, SectionEyebrow } from '@/components/ui';
+import { AppHeader } from '@/components/AppHeader';
+import { VISA_SUMMARY } from '@/components/WorkRights';
 import { useColors } from '@/hooks/useColors';
+import { useAuth } from '@/context/AuthContext';
+import { type } from '@/constants/typography';
 import { api, isFallbackToPaste } from '@/lib/api';
+import type { JobSummary, WorkRights } from '@/lib/api';
 
 type SubmitMode = 'link' | 'paste' | 'file';
+type Colors = ReturnType<typeof useColors>;
+
+const MODES: { mode: SubmitMode; label: string; icon: keyof typeof Feather.glyphMap }[] = [
+  { mode: 'link', label: 'Link', icon: 'link' },
+  { mode: 'paste', label: 'Paste text', icon: 'file-text' },
+  { mode: 'file', label: 'Upload', icon: 'upload' },
+];
 
 export default function SubmitJob() {
   const colors = useColors();
+  const { session, profile } = useAuth();
   // Filled in when a job is shared from another app (see ShareIntentHandler).
   const { sharedUrl, sharedText, shareId } = useLocalSearchParams<{ sharedUrl?: string; sharedText?: string; shareId?: string }>();
   const [fromShare, setFromShare] = useState(false);
@@ -19,6 +33,11 @@ export default function SubmitJob() {
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const pipeline = useQuery({ queryKey: ['pipeline'], queryFn: api.getPipeline, enabled: !!session });
+  const recent = (pipeline.data?.jobs ?? []).slice(0, 3);
+  const workRights = (profile?.preferences?.work_rights as WorkRights | undefined) ?? null;
 
   // This screen is a tab, so it stays mounted: apply each new share when it
   // arrives rather than only on first render.
@@ -39,8 +58,6 @@ export default function SubmitJob() {
     setFromShare(false);
     router.setParams({ sharedUrl: undefined, sharedText: undefined, shareId: undefined });
   };
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const pickFile = async () => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -49,6 +66,17 @@ export default function SubmitJob() {
       multiple: false,
     });
     if (!result.canceled) setFile(result.assets[0]);
+  };
+
+  const pasteFromClipboard = async () => {
+    const copied = (await Clipboard.getStringAsync()).trim();
+    if (!copied) {
+      setError('Your clipboard is empty. Copy the job link or description first, then tap Paste again.');
+      return;
+    }
+    setError('');
+    if (mode === 'link') setUrl(copied);
+    else setDescription(copied);
   };
 
   const submit = async () => {
@@ -81,64 +109,144 @@ export default function SubmitJob() {
   };
 
   return (
-    <Screen>
-      <PageHeader
-        eyebrow="Evaluate"
-        title="Check a role"
-        subtitle="Choose how to share the job post."
-        onBack={() => router.push('/(tabs)')}
-      />
-      {fromShare && (
-        <View style={{ backgroundColor: colors.accent, borderRadius: 14, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-          <Feather name="share" size={18} color={colors.accentForeground} />
-          <Text style={{ color: colors.accentForeground, fontFamily: 'Inter_500Medium', fontSize: 14, lineHeight: 20, flex: 1 }}>Shared post loaded. Check it, then evaluate.</Text>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <AppHeader section="Evaluate" />
+      <Screen topInset={false}>
+        <View style={{ gap: 4 }}>
+          <SectionEyebrow>Role evaluation</SectionEyebrow>
+          <Text style={[type.headlineLg, { color: colors.navy }]}>Evaluate a role</Text>
+          <Text style={[type.bodyLg, { color: colors.mutedForeground }]}>Add a job and we’ll check your fit and your work rights.</Text>
         </View>
-      )}
-      <View style={{ flexDirection: 'row', gap: 9 }}>
-        <ChoiceTile icon="link" label="Link" caption="Job URL" selected={mode === 'link'} onPress={() => { setMode('link'); setError(''); }} />
-        <ChoiceTile icon="edit-3" label="Paste" caption="Job text" selected={mode === 'paste'} onPress={() => { setMode('paste'); setError(''); }} />
-        <ChoiceTile icon="upload" label="Upload" caption="PDF or DOCX" selected={mode === 'file'} onPress={() => { setMode('file'); setError(''); }} />
+
+        {fromShare && (
+          <View style={{ backgroundColor: colors.accent, borderRadius: 14, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+            <Feather name="share" size={18} color={colors.accentForeground} />
+            <Text style={[type.bodySemibold, { color: colors.accentForeground, flex: 1 }]}>Shared job loaded. Check it, then run the evaluation.</Text>
+          </View>
+        )}
+
+        <View style={{ flexDirection: 'row', backgroundColor: colors.muted, borderRadius: 18, padding: 4 }} accessibilityRole="tablist">
+          {MODES.map((m) => {
+            const selected = mode === m.mode;
+            return (
+              <Pressable
+                key={m.mode}
+                onPress={() => { setMode(m.mode); setError(''); }}
+                accessibilityRole="tab"
+                accessibilityState={{ selected }}
+                style={{ flex: 1, minHeight: 48, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: selected ? colors.card : 'transparent' }}
+              >
+                <Feather name={m.icon} size={16} color={selected ? colors.primary : colors.mutedForeground} />
+                <Text style={[type.bodySemibold, { color: selected ? colors.navy : colors.mutedForeground }]}>{m.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 16, gap: 12 }}>
+          {mode !== 'file' && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={[type.bodySemibold, { color: colors.navy }]}>{mode === 'link' ? 'Job post link' : 'Job description'}</Text>
+              <Pressable onPress={() => void pasteFromClipboard()} accessibilityRole="button" accessibilityLabel="Paste from clipboard" hitSlop={8} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Feather name="clipboard" size={16} color={colors.primary} />
+                <Text style={[type.bodySemibold, { color: colors.primary }]}>Paste</Text>
+              </Pressable>
+            </View>
+          )}
+          {mode === 'link' && (
+            <>
+              <Field placeholder="https://www.linkedin.com/jobs/view/…" value={url} onChangeText={setUrl} keyboardType="url" autoCapitalize="none" autoCorrect={false} accessibilityLabel="Job post link" />
+              <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Works with LinkedIn and most company career sites. Seek blocks automated reading, so for Seek ads copy the description and use Paste text.</Text>
+            </>
+          )}
+          {mode === 'paste' && (
+            <Field placeholder="Paste the full job posting here…" value={description} onChangeText={setDescription} multiline accessibilityLabel="Job description" />
+          )}
+          {mode === 'file' && (
+            <View style={{ gap: 10 }}>
+              <Text style={[type.bodySemibold, { color: colors.navy }]}>Upload a job post</Text>
+              <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>PDF, DOCX or text, up to 5 MB.</Text>
+              <Button onPress={pickFile} variant="secondary" icon="paperclip">{file ? 'Choose a different file' : 'Choose job file'}</Button>
+              {file && <Text style={[type.bodySemibold, { color: colors.teal }]}>{file.name}</Text>}
+            </View>
+          )}
+          <CoachNote workRights={workRights} colors={colors} />
+        </View>
+
+        {loading && (
+          <LoadingNotice
+            title="Reading the role…"
+            detail="This can take up to two minutes."
+            steps={[
+              { label: 'Reading the posting', estimatedMs: 30000 },
+              { label: 'Checking fit and work rights', estimatedMs: 45000 },
+              { label: 'Writing your report', estimatedMs: 45000 },
+            ]}
+          />
+        )}
+        {error ? <ErrorNotice message={error} /> : null}
+        <View style={{ gap: 8 }}>
+          <Button onPress={submit} loading={loading} icon="arrow-right">Run evaluation</Button>
+          <Text style={[type.labelCaption, { color: colors.mutedForeground, textAlign: 'center' }]}>Visa checks are guidance only, not legal advice.</Text>
+        </View>
+
+        {recent.length > 0 && (
+          <View style={{ gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Feather name="clock" size={17} color={colors.teal} />
+                <Text style={[type.headlineSm, { color: colors.navy }]}>Recent assessments</Text>
+              </View>
+              <Pressable onPress={() => router.push('/(tabs)')} accessibilityRole="link" hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }}>
+                <Text style={[type.bodySemibold, { color: colors.primary }]}>View all</Text>
+              </Pressable>
+            </View>
+            {recent.map((job) => <RecentRow key={job.job_id} job={job} colors={colors} />)}
+          </View>
+        )}
+      </Screen>
+    </View>
+  );
+}
+
+function CoachNote({ workRights, colors }: { workRights: WorkRights | null; colors: Colors }) {
+  const visa = workRights ? VISA_SUMMARY[workRights.status].title : null;
+  return (
+    <View style={{ backgroundColor: colors.accent, borderRadius: 14, padding: 14, flexDirection: 'row', gap: 10 }}>
+      <Feather name="compass" size={18} color={colors.accentForeground} style={{ marginTop: 2 }} />
+      <Text style={[type.bodyMd, { color: colors.accentForeground, flex: 1 }]}>
+        {visa ? (
+          <>We’ll check the role’s location and requirements against your <Text style={{ fontFamily: 'Inter_700Bold' }}>{visa}</Text>, compare it with your CV, and score your fit.</>
+        ) : (
+          <>We’ll compare the role with your CV and score your fit. <Text style={{ fontFamily: 'Inter_700Bold' }}>Set your work rights in Profile</Text> to get a visa check too.</>
+        )}
+      </Text>
+    </View>
+  );
+}
+
+function RecentRow({ job, colors }: { job: JobSummary; colors: Colors }) {
+  const verdict = job.work_rights_verdict;
+  const icon: keyof typeof Feather.glyphMap = verdict === 'not_eligible' ? 'x-circle' : verdict === 'check' ? 'alert-triangle' : verdict === 'eligible' ? 'check-circle' : 'file-text';
+  const fg = verdict === 'not_eligible' ? colors.destructive : verdict === 'check' ? colors.warning : verdict === 'eligible' ? colors.success : colors.mutedForeground;
+  const bg = verdict === 'not_eligible' ? colors.destructiveSoft : verdict === 'check' ? colors.warningSoft : verdict === 'eligible' ? colors.successSoft : colors.muted;
+  return (
+    <Pressable
+      onPress={() => router.push(`/job/${job.job_id}`)}
+      accessibilityRole="button"
+      style={({ pressed }) => ({ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.85 : 1 })}
+    >
+      <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+        <Feather name={icon} size={18} color={fg} />
       </View>
-      {mode === 'link' && <Field label="Job posting URL" placeholder="https://company.com/jobs/role" value={url} onChangeText={setUrl} keyboardType="url" autoCapitalize="none" autoCorrect={false} />}
-      {mode === 'paste' && (
-        <Button
-          variant="secondary"
-          icon="clipboard"
-          onPress={async () => {
-            const copied = (await Clipboard.getStringAsync()).trim();
-            if (copied) {
-              setDescription(copied);
-              setError('');
-            } else {
-              setError('Your clipboard is empty. Copy the job description first, then tap Paste again.');
-            }
-          }}
-        >
-          Paste from clipboard
-        </Button>
-      )}
-      {mode === 'paste' && <Field label="Job description" placeholder="Paste the full job posting here..." value={description} onChangeText={setDescription} multiline />}
-      {mode === 'file' && (
-        <View style={{ borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, padding: 18, gap: 15 }}>
-          <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 17 }}>Upload a job post</Text>
-          <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 20 }}>PDF, DOCX, or text · 5 MB max.</Text>
-          <Button onPress={pickFile} variant="secondary" icon="paperclip">{file ? 'Choose a different file' : 'Choose job file'}</Button>
-          {file && <Text style={{ color: colors.teal, fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>{file.name}</Text>}
-        </View>
-      )}
-      {loading && (
-        <LoadingNotice
-          title="Reading the role…"
-          detail="This may take up to two minutes."
-          steps={[
-            { label: 'Reading the posting', estimatedMs: 30000 },
-            { label: 'Comparing to your profile', estimatedMs: 45000 },
-            { label: 'Writing your report', estimatedMs: 45000 },
-          ]}
-        />
-      )}
-      {error && <ErrorNotice message={error} />}
-      <Button onPress={submit} loading={loading} icon="arrow-right">Evaluate this role</Button>
-    </Screen>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text numberOfLines={1} style={[type.bodySemibold, { color: colors.navy }]}>{job.title || 'Untitled role'}</Text>
+        <Text numberOfLines={1} style={[type.labelCaption, { color: colors.mutedForeground }]}>{job.company || 'Company not listed'}</Text>
+      </View>
+      <Text style={[type.bodySemibold, { color: colors.navy }]}>
+        {job.score === null ? '—' : job.score.toFixed(1)}
+        <Text style={[type.labelCaption, { color: colors.mutedForeground }]}> /5</Text>
+      </Text>
+    </Pressable>
   );
 }

@@ -14,6 +14,39 @@ export const WORK_RIGHTS_OPTIONS: { status: WorkRightsStatus; label: string; cap
   { status: 'other', label: 'Something else', caption: 'Student, working holiday, bridging visa…' },
 ];
 
+/**
+ * Plain-English summary of what each kind of work rights allows, shown on
+ * Home and in the Profile visa panel. Mirrors the rules the evaluation uses
+ * (career-mate-api/src/workRights.mjs). Guidance, not legal advice.
+ */
+export const VISA_SUMMARY: Record<WorkRightsStatus, { title: string; areas: string; entitlement: string }> = {
+  citizen_pr: {
+    title: 'Citizen or permanent resident',
+    areas: 'Anywhere in Australia.',
+    entitlement: 'Any employer, no visa conditions on where you work.',
+  },
+  visa_491: {
+    title: 'Visa 491 — Skilled Work Regional',
+    areas: 'Designated regional areas: all of Australia except greater Sydney, Melbourne and Brisbane.',
+    entitlement: 'Any employer, as long as you live and work in a regional area.',
+  },
+  visa_494: {
+    title: 'Visa 494 — Employer Sponsored Regional',
+    areas: 'Designated regional areas: all of Australia except greater Sydney, Melbourne and Brisbane.',
+    entitlement: 'Tied to your sponsoring employer. A new employer normally needs a new nomination.',
+  },
+  needs_sponsorship: {
+    title: 'Needs visa sponsorship',
+    areas: 'Depends on the visa an employer sponsors.',
+    entitlement: 'Roles that offer sponsorship. Ads saying "no sponsorship" are flagged.',
+  },
+  other: {
+    title: 'Other visa',
+    areas: 'Depends on your visa conditions.',
+    entitlement: 'Checked against the note you saved.',
+  },
+};
+
 export function workRightsLabel(status?: WorkRightsStatus | null) {
   return WORK_RIGHTS_OPTIONS.find((o) => o.status === status)?.label ?? 'Not set';
 }

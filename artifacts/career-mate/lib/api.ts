@@ -7,6 +7,7 @@ export type Profile = {
   cv_markdown: string;
   target_roles: string[] | null;
   preferences: Record<string, unknown> | null;
+  updated_at?: string;
 };
 
 export type WorkRightsStatus = 'citizen_pr' | 'visa_491' | 'visa_494' | 'needs_sponsorship' | 'other';
@@ -21,6 +22,8 @@ export type JobSummary = {
   score: number | null;
   status: string;
   work_rights_verdict?: WorkRightsVerdict | null;
+  has_cv?: boolean;
+  has_cover_letter?: boolean;
 };
 
 export type JobDetail = JobSummary & {

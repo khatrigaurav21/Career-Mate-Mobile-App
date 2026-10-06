@@ -115,9 +115,9 @@ export default function Login() {
           {error && <ErrorNotice message={error} />}
         </View>
       </View>
-      <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 17, textAlign: 'center' }}>
+      <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>
         By continuing, you agree to use Career Mate for your own career materials. See our{' '}
-        <Text onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} style={{ color: colors.primary, textDecorationLine: 'underline' }} accessibilityRole="link">Privacy Policy</Text>.
+        <Text onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} style={{ color: colors.primary, textDecorationLine: 'underline' }} accessibilityRole="link">Privacy Policy</Text>
       </Text>
     </KeyboardAwareScrollViewCompat>
   );
