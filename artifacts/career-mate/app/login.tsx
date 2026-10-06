@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { BrandMark, Button, ErrorNotice, Field, OtpInput, SectionEyebrow } from '@/components/ui';
@@ -62,7 +62,7 @@ export default function Login() {
   return (
     <KeyboardAwareScrollViewCompat
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ flexGrow: 1, padding: 22, paddingTop: insets.top + 30, paddingBottom: insets.bottom + 24 }}
+      contentContainerStyle={{ flexGrow: 1, padding: 22, paddingTop: insets.top + (Platform.OS === 'android' ? 42 : 30), paddingBottom: insets.bottom + 24 }}
       bottomOffset={80}
       keyboardShouldPersistTaps="handled"
     >
@@ -70,8 +70,8 @@ export default function Login() {
       <View style={{ flex: 1, justifyContent: 'center', gap: 22, maxWidth: 480, width: '100%', alignSelf: 'center' }}>
         <View style={{ gap: 10 }}>
           <SectionEyebrow>Your next move</SectionEyebrow>
-          <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 34, letterSpacing: -1.2, lineHeight: 40 }}>Make every application count</Text>
-          <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 23 }}>Career Mate turns your CV and a job posting into a clear, tailored plan</Text>
+          <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 34, letterSpacing: -1.2, lineHeight: 40 }}>Make your next move count</Text>
+          <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 23 }}>Check your fit and build a focused application.</Text>
         </View>
         <View style={{ gap: 15 }}>
           {step === 'email' ? (
@@ -88,7 +88,7 @@ export default function Login() {
                 onSubmitEditing={requestCode}
               />
               <Button onPress={requestCode} loading={loading} icon="arrow-right" testID="send-code">Email me a code</Button>
-              <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>No password to remember — we’ll send a one-time sign-in code</Text>
+              <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>No password. We’ll email you a one-time code.</Text>
             </>
           ) : (
             <>

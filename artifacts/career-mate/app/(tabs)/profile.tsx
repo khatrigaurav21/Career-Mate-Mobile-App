@@ -70,22 +70,24 @@ export default function Profile() {
   };
   return (
     <Screen>
-      <PageHeader eyebrow="Your profile" title="Career context" onBack={() => router.back()} />
-      <View style={{ backgroundColor: colors.inkPanel, borderRadius: 22, padding: 19, gap: 8 }}>
+      <PageHeader eyebrow="Your account" title="Profile" />
+      <View style={{ backgroundColor: colors.inkPanel, borderRadius: 22, padding: 19, gap: 9 }}>
         <Feather name="mail" size={18} color={colors.primary} />
         <Text style={{ color: colors.onNavy, fontFamily: 'Inter_600SemiBold', fontSize: 16 }}>{session?.email}</Text>
-        <Text style={{ color: colors.onNavyMuted, fontFamily: 'Inter_400Regular', fontSize: 13 }}>Your CV is used to make each evaluation specific to you.</Text>
       </View>
       <View style={{ gap: 11 }}>
-        <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 19 }}>Profile status</Text>
+        <ProfileSectionTitle icon="file-text" title="CV profile" />
         <View style={{ borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 18, padding: 16, gap: 12 }}>
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}><Feather name="check-circle" size={19} color={colors.success} /><Text style={{ color: colors.foreground, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Profile is ready</Text></View>
-          <Text numberOfLines={4} style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 20 }}>{profile?.cv_markdown || 'Your profile is ready for evaluations.'}</Text>
+          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+            <Feather name="check-circle" size={19} color={colors.success} />
+            <Text style={{ color: colors.foreground, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Ready for evaluations</Text>
+          </View>
+          <Text numberOfLines={3} style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 20 }}>{profile?.cv_markdown || 'Your profile is ready for evaluations.'}</Text>
         </View>
       </View>
       <View style={{ gap: 11 }}>
-        <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 19 }}>Work rights</Text>
-        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20 }}>Each job is checked against this, so you know straight away whether you can legally take it.</Text>
+        <ProfileSectionTitle icon="globe" title="Work rights" />
+        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>Used in every job check.</Text>
         {editingRights ? (
           <>
             <WorkRightsPicker value={draftRights} onChange={setDraftRights} />
@@ -118,5 +120,15 @@ export default function Profile() {
           : <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13, textDecorationLine: 'underline' }}>Delete account</Text>}
       </Pressable>
     </Screen>
+  );
+}
+
+function ProfileSectionTitle({ icon, title }: { icon: keyof typeof Feather.glyphMap; title: string }) {
+  const colors = useColors();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+      <Feather name={icon} size={17} color={colors.teal} />
+      <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 18 }}>{title}</Text>
+    </View>
   );
 }

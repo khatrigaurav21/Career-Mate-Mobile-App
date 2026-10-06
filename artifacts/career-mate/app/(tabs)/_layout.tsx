@@ -12,8 +12,16 @@ function NativeTabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Icon sf={{ default: 'list.bullet', selected: 'list.bullet.rectangle.fill' }} />
-        <NativeTabs.Trigger.Label>Pipeline</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md={{ default: 'home', selected: 'home' }} />
+        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="submit">
+        <NativeTabs.Trigger.Icon sf={{ default: 'plus.circle', selected: 'plus.circle.fill' }} md={{ default: 'add_circle_outline', selected: 'add_circle' }} />
+        <NativeTabs.Trigger.Label>Evaluate</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <NativeTabs.Trigger.Icon sf={{ default: 'person.crop.circle', selected: 'person.crop.circle.fill' }} md={{ default: 'person_outline', selected: 'person' }} />
+        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -31,11 +39,13 @@ function ClassicTabLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
-        tabBarStyle: { position: 'absolute', backgroundColor: isIOS ? 'transparent' : colors.card, borderTopWidth: isWeb ? 1 : 0, borderTopColor: colors.border, elevation: 0, ...(isWeb ? { height: 84 } : {}) },
+        tabBarStyle: { position: 'absolute', backgroundColor: isIOS ? 'transparent' : colors.card, borderTopWidth: isWeb ? 1 : 0, borderTopColor: colors.border, elevation: 0, ...(isWeb ? { height: 76 } : {}) },
         tabBarBackground: () => isIOS ? <BlurView intensity={100} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.card }]} />,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Pipeline', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="list.bullet" tintColor={color} size={24} /> : <Feather name="list" size={22} color={color} /> }} />
+      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="house.fill" tintColor={color} size={22} /> : <Feather name="home" size={21} color={color} /> }} />
+      <Tabs.Screen name="submit" options={{ title: 'Evaluate', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="plus.circle" tintColor={color} size={22} /> : <Feather name="plus-circle" size={21} color={color} /> }} />
+      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: ({ color }) => isIOS ? <SymbolView name="person.crop.circle" tintColor={color} size={22} /> : <Feather name="user" size={21} color={color} /> }} />
     </Tabs>
   );
 }

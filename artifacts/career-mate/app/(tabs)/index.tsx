@@ -62,30 +62,28 @@ export default function Pipeline() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={pipeline.isRefetching} onRefresh={() => void pipeline.refetch()} tintColor={colors.primary} />}
         ListHeaderComponent={
-          <View style={{ gap: 19, marginBottom: 18 }}>
+          <View style={{ gap: 22, marginBottom: 13 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View style={{ gap: 5 }}>
-                <SectionEyebrow>Your pipeline</SectionEyebrow>
-                <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 30, letterSpacing: -0.9 }}>Good to see you.</Text>
+                <SectionEyebrow>Home</SectionEyebrow>
+                <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 29, letterSpacing: -0.9 }}>Your roles</Text>
               </View>
-              <IconButton icon="user" onPress={() => router.push('/profile')} label="Open profile" />
+              <IconButton icon="plus" onPress={() => router.push('/submit')} label="Evaluate a job" />
             </View>
-            <View style={{ backgroundColor: colors.inkPanel, borderRadius: 22, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 15 }}>
-              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}><Feather name="target" size={21} color={colors.primaryForeground} /></View>
-              <View style={{ flex: 1, gap: 4 }}>
-                <Text style={{ color: colors.onNavy, fontFamily: 'Inter_700Bold', fontSize: 16 }}>Have a role in mind?</Text>
-                <Text style={{ color: colors.onNavyMuted, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 }}>See how well it fits before you spend time applying.</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+                <Feather name="briefcase" size={17} color={colors.teal} />
+                <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 16 }}>Recent evaluations</Text>
               </View>
-              <Pressable onPress={() => router.push('/submit')} hitSlop={8}><Feather name="arrow-up-right" size={22} color={colors.primary} /></Pressable>
+              <StatusChip>{jobs.length}</StatusChip>
             </View>
-            {jobs.length > 0 && <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13 }}>{jobs.length} {jobs.length === 1 ? 'opportunity' : 'opportunities'} evaluated · hold one to delete</Text>}
           </View>
         }
         ListEmptyComponent={
-          <View style={{ alignItems: 'center', paddingVertical: 56, paddingHorizontal: 20, gap: 15 }}>
+          <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 20, gap: 14 }}>
             <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}><Feather name="compass" size={28} color={colors.teal} /></View>
-            <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 20 }}>Your next move starts here</Text>
-            <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 21, textAlign: 'center' }}>Evaluate a job posting to see your fit, sharpen your positioning, and prepare your application.</Text>
+            <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 20 }}>No evaluations yet</Text>
+            <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 21, textAlign: 'center' }}>Choose Evaluate when you find a role.</Text>
             <Button onPress={() => router.push('/submit')} icon="plus" style={{ marginTop: 5 }}>Evaluate a job</Button>
           </View>
         }

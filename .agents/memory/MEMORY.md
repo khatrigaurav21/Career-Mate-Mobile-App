@@ -1,1 +1,2 @@
 - [Expo storage compatibility](expo-storage-compatibility.md) — keep native session storage secure while handling web preview shims explicitly.
+- [Career Mate UI boundaries](career-mate-ui-boundaries.md) — preserve the user's excluded build/share wiring and keep the three-tab, safe-area-aware navigation direction.

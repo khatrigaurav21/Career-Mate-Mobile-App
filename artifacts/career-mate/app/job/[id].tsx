@@ -19,7 +19,7 @@ function documentErrorMessage(error: unknown) {
 export default function JobDetail() {
   const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [openSection, setOpenSection] = useState('A');
+  const [openSection, setOpenSection] = useState('');
   const job = useQuery({ queryKey: ['job', id], queryFn: () => api.getJob(id), enabled: !!id });
   const cvMutation = useMutation({ mutationFn: () => api.generateCv(id) });
   const coverMutation = useMutation({ mutationFn: () => api.generateCoverLetter(id) });
@@ -38,6 +38,7 @@ export default function JobDetail() {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <IconButton icon="arrow-left" onPress={() => router.back()} label="Go back" />
         <View style={{ flexDirection: 'row', gap: 8 }}>
+          <IconButton icon="home" onPress={() => router.replace('/(tabs)')} label="Go to home" />
           {cvUrl && (
             // Opens the phone's share sheet with the tailored CV's link (it used
             // to just open the PDF, which looked like a broken share button).
@@ -63,10 +64,10 @@ export default function JobDetail() {
         </View>
       </View>
       <View style={{ gap: 11 }}>
-        <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 19 }}>Application documents</Text>
+        <DetailSectionTitle icon="file-text" title="Documents" />
         <DocumentAction
           title="Tailored CV"
-          description={cvUrl ? 'Ready to view or download' : 'Generate a role-specific version'}
+          description={cvUrl ? 'Ready to open' : 'Create a tailored version'}
           icon="file-text"
           url={cvUrl}
           loading={cvMutation.isPending}
@@ -80,7 +81,7 @@ export default function JobDetail() {
         {cvMutation.data && <WarningList warnings={cvMutation.data.warnings} />}
         <DocumentAction
           title="Cover letter"
-          description={coverUrl ? 'Ready to view or download' : 'Generate a focused first draft'}
+          description={coverUrl ? 'Ready to open' : 'Create a first draft'}
           icon="edit-3"
           url={coverUrl}
           loading={coverMutation.isPending}
@@ -95,7 +96,7 @@ export default function JobDetail() {
         {(cvMutation.isError || coverMutation.isError) && <ErrorNotice message={documentErrorMessage(cvMutation.error ?? coverMutation.error)} />}
       </View>
       <View style={{ gap: 12 }}>
-        <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 19 }}>Your evaluation</Text>
+        <DetailSectionTitle icon="target" title="Evaluation details" />
         {reportEntries.map(([key, value]) => {
           const open = openSection === key;
           return (
@@ -119,6 +120,16 @@ export default function JobDetail() {
         })}
       </View>
     </Screen>
+  );
+}
+
+function DetailSectionTitle({ icon, title }: { icon: keyof typeof Feather.glyphMap; title: string }) {
+  const colors = useColors();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+      <Feather name={icon} size={18} color={colors.teal} />
+      <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 18 }}>{title}</Text>
+    </View>
   );
 }
 

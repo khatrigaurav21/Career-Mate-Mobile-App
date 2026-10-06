@@ -61,17 +61,22 @@ export default function SubmitJob() {
 
   return (
     <Screen>
-      <PageHeader eyebrow="New evaluation" title="Find the signal" subtitle="Give us the role in whichever format you have. We’ll do the reading." onBack={() => router.back()} />
+      <PageHeader
+        eyebrow="Evaluate"
+        title="Check a role"
+        subtitle="Choose how to share the job post."
+        onBack={() => router.push('/(tabs)')}
+      />
       {fromShare && (
         <View style={{ backgroundColor: colors.accent, borderRadius: 14, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
           <Feather name="share" size={18} color={colors.accentForeground} />
-          <Text style={{ color: colors.accentForeground, fontFamily: 'Inter_500Medium', fontSize: 14, lineHeight: 20, flex: 1 }}>Shared from another app. Check it below, then tap Evaluate.</Text>
+          <Text style={{ color: colors.accentForeground, fontFamily: 'Inter_500Medium', fontSize: 14, lineHeight: 20, flex: 1 }}>Shared post loaded. Check it, then evaluate.</Text>
         </View>
       )}
       <View style={{ flexDirection: 'row', gap: 9 }}>
-        <ChoiceTile icon="link" label="Paste a link" caption="We’ll fetch the posting" selected={mode === 'link'} onPress={() => { setMode('link'); setError(''); }} />
-        <ChoiceTile icon="edit-3" label="Paste text" caption="Use the full description" selected={mode === 'paste'} onPress={() => { setMode('paste'); setError(''); }} />
-        <ChoiceTile icon="upload" label="Upload file" caption="PDF, DOCX, or text" selected={mode === 'file'} onPress={() => { setMode('file'); setError(''); }} />
+        <ChoiceTile icon="link" label="Link" caption="Job URL" selected={mode === 'link'} onPress={() => { setMode('link'); setError(''); }} />
+        <ChoiceTile icon="edit-3" label="Paste" caption="Job text" selected={mode === 'paste'} onPress={() => { setMode('paste'); setError(''); }} />
+        <ChoiceTile icon="upload" label="Upload" caption="PDF or DOCX" selected={mode === 'file'} onPress={() => { setMode('file'); setError(''); }} />
       </View>
       {mode === 'link' && <Field label="Job posting URL" placeholder="https://company.com/jobs/role" value={url} onChangeText={setUrl} keyboardType="url" autoCapitalize="none" autoCorrect={false} />}
       {mode === 'paste' && (
@@ -91,19 +96,19 @@ export default function SubmitJob() {
           Paste from clipboard
         </Button>
       )}
-      {mode === 'paste' && <Field label="Job description" placeholder="Paste the full job posting here..." value={description} onChangeText={setDescription} multiline helper="The more context you share, the more useful the evaluation." />}
+      {mode === 'paste' && <Field label="Job description" placeholder="Paste the full job posting here..." value={description} onChangeText={setDescription} multiline />}
       {mode === 'file' && (
         <View style={{ borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, padding: 18, gap: 15 }}>
-          <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 17 }}>Upload a job description</Text>
-          <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 20 }}>PDF, DOCX, or plain text. Maximum file size is 5MB.</Text>
+          <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 17 }}>Upload a job post</Text>
+          <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 20 }}>PDF, DOCX, or text · 5 MB max.</Text>
           <Button onPress={pickFile} variant="secondary" icon="paperclip">{file ? 'Choose a different file' : 'Choose job file'}</Button>
           {file && <Text style={{ color: colors.teal, fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>{file.name}</Text>}
         </View>
       )}
       {loading && (
         <LoadingNotice
-          title="Reading the role carefully…"
-          detail="This can take up to two minutes while we fetch the posting and compare it with your profile."
+          title="Reading the role…"
+          detail="This may take up to two minutes."
           steps={[
             { label: 'Reading the posting', estimatedMs: 30000 },
             { label: 'Comparing to your profile', estimatedMs: 45000 },
