@@ -3,7 +3,7 @@ name: Career Mate UI boundaries
 description: User-stated scope limits and navigation constraints for Career Mate visual changes.
 ---
 
-For Career Mate UI restyling, leave `eas.json`, the plugins section of `app.json`, `lib/errorReporting.ts`, `components/ShareIntentHandler.tsx`, and `app/+native-intent.tsx` unchanged. Other components and app screen files may be restyled. The preferred navigation is three persistent tabs: Home, Evaluate, and Profile. Keep the BrandMark below Android's top safe area so it is not clipped by the notch.
+For Career Mate UI restyling, leave `eas.json`, the plugins section of `app.json`, `lib/errorReporting.ts`, `components/ShareIntentHandler.tsx`, and `app/+native-intent.tsx` unchanged. Other components and app screen files may be restyled. The preferred navigation is three persistent tabs: Home, Evaluate, and Profile. Keep the BrandMark below Android's top safe area so it is not clipped by the notch. Keep text readable on phones: body text 16pt, card titles at least 16pt, and nothing (pills, captions, labels) below 12pt — the user has flagged tiny text before. Evaluate is a tab that stays mounted: shared jobs arrive as sharedUrl/sharedText + shareId params, so keep the effect that applies them on each new shareId.
 
 **Why:** The user identified those files as build or feature wiring rather than UI, chose three tabs, and reported that the BrandMark was clipped on Android.
 
