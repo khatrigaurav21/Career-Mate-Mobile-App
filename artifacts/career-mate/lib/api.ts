@@ -15,12 +15,31 @@ export type WorkRights = { status: WorkRightsStatus; note: string };
 export type WorkRightsVerdict = 'eligible' | 'check' | 'not_eligible' | 'unknown';
 export type WorkRightsResult = { verdict: WorkRightsVerdict; summary: string; evidence: string };
 
+// Where the user is with a job. 'evaluated' = assessed, not applied yet.
+export type ApplicationStatus = 'evaluated' | 'applied' | 'interviewing' | 'offer' | 'rejected' | 'withdrawn';
+
+export type JobEvent = {
+  kind: 'status' | 'follow_up';
+  status: ApplicationStatus | null;
+  note: string | null;
+  created_at: string;
+};
+
+export type TrackingState = {
+  status: ApplicationStatus;
+  status_changed_at: string | null;
+  last_follow_up_at: string | null;
+  follow_up_due: boolean;
+};
+
 export type JobSummary = {
   job_id: string;
   company: string | null;
   title: string | null;
   score: number | null;
-  status: string;
+  status: ApplicationStatus;
+  status_changed_at?: string | null;
+  follow_up_due?: boolean;
   work_rights_verdict?: WorkRightsVerdict | null;
   has_cv?: boolean;
   has_cover_letter?: boolean;
@@ -28,6 +47,8 @@ export type JobSummary = {
 
 export type JobDetail = JobSummary & {
   report: Record<string, string>;
+  last_follow_up_at?: string | null;
+  events?: JobEvent[];
   work_rights?: WorkRightsResult | null;
   [key: string]: unknown;
 };
@@ -193,6 +214,12 @@ export const api = {
   deleteAccount: () => request<{ deleted: boolean }>('/account', { method: 'DELETE' }),
   deleteJob: (id: string) =>
     request<{ deleted: boolean }>(`/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  setJobStatus: (id: string, status: ApplicationStatus) =>
+    request<TrackingState & { job_id: string }>(`/jobs/${encodeURIComponent(id)}/status`, { method: 'PATCH', body: { status } }),
+  logFollowUp: (id: string) =>
+    request<TrackingState & { job_id: string }>(`/jobs/${encodeURIComponent(id)}/follow-up`, { method: 'POST', body: {} }),
+  draftFollowUp: (id: string) =>
+    request<{ subject: string; body: string }>(`/jobs/${encodeURIComponent(id)}/follow-up/draft`, { method: 'POST', body: {} }),
   generateCv: (job_id: string) =>
     request<{
       pdf_url: string;

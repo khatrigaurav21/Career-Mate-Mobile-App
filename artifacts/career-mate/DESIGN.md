@@ -76,9 +76,11 @@ job), **Profile**, each topped by `AppHeader` (brand mark, "Career Mate" +
 section name, initials avatar → Profile). Stack screens on top: Login
 (one-time code), Setup (upload / paste / guided Q&A), Job detail.
 
-- **Home:** visa card (from saved work rights, or a "set your work rights" prompt), three stat tiles (Evaluated / High match 4.0+ / CV ready), All / CV-ready filter, job cards (verdict pill, title, company, square score badge, status line, action button), and a dark "Found a role you like?" card with honest Seek guidance.
+- **Home:** visa card (from saved work rights, or a "set your work rights" prompt), three stat tiles (Evaluated / High match 4.0+ / Applied), a "ready for a follow-up" banner when any are due, All / Applied / CV-ready filter, job cards (verdict pill, title, company, square score badge, stage or document line, action button — "Follow up" when one is due), and a dark "Found a role you like?" card with honest Seek guidance.
 - **Evaluate:** Link / Paste text / Upload segmented control, Paste-from-clipboard, a coach note naming the user's visa, "Run evaluation", and Recent assessments.
 - **Profile:** account card, dark work-rights panel (where you can work / who you can work for, per visa type), CV card, preferences list, "guidance only" note, privacy / sign out / delete account.
+
+- **Job detail:** header actions, work-rights banner, score, **"Where are you with this?"** (stage chips Not applied → Applied → Interviewing → Offer / Rejected / Withdrawn, a follow-up card when due with a drafted email to copy or share, and a history list), documents, A–H report.
 
 Rules from the redesign: the card body and its action button are siblings, never nested buttons; a job the user can't legally take never gets the coral "Tailor CV" call to action (it shows "Review").
 
@@ -95,6 +97,7 @@ Rules from the redesign: the card body and its action button are siblings, never
 | `AppHeader` | Shared tab header with initials avatar (`initialsFromEmail`) |
 | `VISA_SUMMARY` (in `WorkRights.tsx`) | One source of plain-English visa text (title, where you can work, who you can work for) used by Home and Profile; mirrors the API's rules |
 | `WorkRightsBanner` / `WorkRightsPicker` | Visa/work-rights verdict on job detail (eligible / check / not allowed / not set + JD quote + "guidance only") and the picker in Profile/Setup |
+| `ApplicationTracker` (+ `STATUS_META`, `toneColors`) | Stage picker, follow-up nudge and draft, history on job detail. When a follow-up is due is decided by the API (7 days after applying, 4 after an interview) |
 | `AnimatedSection` | Collapsible report sections (mount-on-open) |
 | `SegmentedProgress`, `LoadingNotice` | Progress for slow operations (evaluation ~1–2 min) |
 | `ErrorNotice`, `WarningList` | Errors and document warnings |
@@ -115,6 +118,8 @@ Rules from the redesign: the card body and its action button are siblings, never
 
 Never claim what the app doesn't do: no "verified", "compliant", "accredited",
 postcode checks, closing dates, apply buttons, notifications or visa expiry.
+The app never sends an email for the user — follow-ups are drafts they copy
+or share and send themselves.
 Seek links can't be read by the server — always say "copy the description and
 paste it" for Seek. Visa text must differ by visa type (494 is tied to the
 sponsoring employer). Every visa verdict carries "guidance only".

@@ -11,6 +11,7 @@ import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator
 import type { ProgressStep } from '@/components/ui';
 import { ReportView } from '@/components/ReportView';
 import { WorkRightsBanner } from '@/components/WorkRights';
+import { ApplicationTracker } from '@/components/ApplicationTracker';
 
 function documentErrorMessage(error: unknown) {
   return isApiError(error) && error.status === 429 ? error.message : 'We couldn’t generate that document. You can try again.';
@@ -63,6 +64,7 @@ export default function JobDetail() {
           <Text style={{ color: colors.foreground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>{data.score === null ? 'We’re still processing this role.' : data.score >= 4 ? 'A strong match worth pursuing.' : data.score >= 2.8 ? 'There’s potential with the right positioning.' : 'Read the trade-offs before deciding.'}</Text>
         </View>
       </View>
+      <ApplicationTracker job={data} />
       <View style={{ gap: 11 }}>
         <DetailSectionTitle icon="file-text" title="Documents" />
         <DocumentAction

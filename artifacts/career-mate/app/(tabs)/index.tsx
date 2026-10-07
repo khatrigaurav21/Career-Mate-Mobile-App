@@ -12,10 +12,14 @@ import { useDeleteJob } from '@/hooks/useDeleteJob';
 import { type } from '@/constants/typography';
 import { AppHeader } from '@/components/AppHeader';
 import { VISA_SUMMARY } from '@/components/WorkRights';
+import { STATUS_META, toneColors } from '@/components/ApplicationTracker';
 import { Button, ErrorNotice, SectionEyebrow } from '@/components/ui';
 
 type Colors = ReturnType<typeof useColors>;
-type Filter = 'all' | 'ready';
+type Filter = 'all' | 'active' | 'ready';
+
+// Applied or further along, but not withdrawn: the roles still in play or decided.
+const ACTIVE = new Set(['applied', 'interviewing', 'offer']);
 
 const HIGH_MATCH = 4.0;
 
@@ -33,10 +37,13 @@ export default function Home() {
       evaluated: jobs.length,
       highMatch: jobs.filter((j) => (j.score ?? 0) >= HIGH_MATCH).length,
       cvReady: jobs.filter((j) => j.has_cv).length,
+      active: jobs.filter((j) => ACTIVE.has(j.status)).length,
+      followUps: jobs.filter((j) => j.follow_up_due).length,
     }),
     [jobs],
   );
-  const visible = filter === 'ready' ? jobs.filter((j) => j.has_cv) : jobs;
+  const visible =
+    filter === 'ready' ? jobs.filter((j) => j.has_cv) : filter === 'active' ? jobs.filter((j) => ACTIVE.has(j.status)) : jobs;
   const workRights = (profile?.preferences?.work_rights as WorkRights | undefined) ?? null;
 
   if (pipeline.isError) {
@@ -73,12 +80,21 @@ export default function Home() {
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   <StatTile label="Evaluated" value={stats.evaluated} unit={stats.evaluated === 1 ? 'role' : 'roles'} tone={colors.navy} colors={colors} />
                   <StatTile label="High match" value={stats.highMatch} unit="4.0+" tone={colors.success} colors={colors} />
-                  <StatTile label="CV ready" value={stats.cvReady} unit="tailored" tone={colors.primary} colors={colors} />
+                  <StatTile label="Applied" value={stats.active} unit={stats.active === 1 ? 'role' : 'roles'} tone={colors.primary} colors={colors} />
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                {stats.followUps > 0 && (
+                  <View accessibilityRole="summary" style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.warningSoft, borderRadius: 16, padding: 14 }}>
+                    <Feather name="bell" size={18} color={colors.warning} />
+                    <Text style={[type.bodySemibold, { color: colors.warning, flex: 1 }]}>
+                      {stats.followUps === 1 ? '1 application is ready for a follow-up' : `${stats.followUps} applications are ready for a follow-up`}
+                    </Text>
+                  </View>
+                )}
+                <View style={{ gap: 10 }}>
                   <Text style={[type.headlineSm, { color: colors.navy }]}>Your roles</Text>
-                  <View style={{ flexDirection: 'row', backgroundColor: colors.muted, borderRadius: 99, padding: 3 }}>
+                  <View style={{ flexDirection: 'row', alignSelf: 'flex-start', backgroundColor: colors.muted, borderRadius: 99, padding: 3 }}>
                     <FilterPill label={`All (${jobs.length})`} selected={filter === 'all'} onPress={() => setFilter('all')} colors={colors} />
+                    <FilterPill label={`Applied (${stats.active})`} selected={filter === 'active'} onPress={() => setFilter('active')} colors={colors} />
                     <FilterPill label={`CV ready (${stats.cvReady})`} selected={filter === 'ready'} onPress={() => setFilter('ready')} colors={colors} />
                   </View>
                 </View>
@@ -91,6 +107,8 @@ export default function Home() {
             <Text style={[type.bodyMd, { color: colors.mutedForeground, textAlign: 'center', paddingVertical: 40 }]}>Loading your roles…</Text>
           ) : filter === 'ready' && jobs.length > 0 ? (
             <Text style={[type.bodyMd, { color: colors.mutedForeground, textAlign: 'center', paddingVertical: 32 }]}>No tailored CVs yet. Open a role and tap Tailored CV.</Text>
+          ) : filter === 'active' && jobs.length > 0 ? (
+            <Text style={[type.bodyMd, { color: colors.mutedForeground, textAlign: 'center', paddingVertical: 32 }]}>Nothing marked as applied yet. Open a role and set where you are with it.</Text>
           ) : (
             <View style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 12, gap: 12 }}>
               <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}>
@@ -199,8 +217,14 @@ function JobCard({ job, colors, onDelete }: { job: JobSummary; colors: Colors; o
   const verdict = job.work_rights_verdict ? VERDICT_PILL[job.work_rights_verdict] : null;
   const open = () => router.push(`/job/${job.job_id}`);
   const title = job.title || 'Untitled role';
-  // Don't push tailoring a CV for a job the user can't legally take.
-  const primaryAction = !job.has_cv && job.work_rights_verdict !== 'not_eligible';
+  const stage = STATUS_META[job.status] ?? STATUS_META.evaluated;
+  const stageTone = toneColors(stage.tone, colors);
+  const tracked = job.status !== 'evaluated';
+  // A due follow-up is the most useful next step; otherwise tailoring a CV —
+  // but never push that for a job the user can't legally take.
+  const followUp = !!job.follow_up_due;
+  const primaryAction = followUp || (!tracked && !job.has_cv && job.work_rights_verdict !== 'not_eligible');
+  const actionLabel = followUp ? 'Follow up' : primaryAction ? 'Tailor CV' : 'Review';
   // The card body and the action button are siblings, not nested: nested
   // buttons are invalid on web and confusing for screen readers.
   return (
@@ -231,15 +255,24 @@ function JobCard({ job, colors, onDelete }: { job: JobSummary; colors: Colors; o
     </Pressable>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
-          <Feather name={job.has_cv ? 'file-text' : 'clock'} size={14} color={job.has_cv ? colors.success : colors.mutedForeground} />
-          <Text style={[type.labelCaption, { color: job.has_cv ? colors.success : colors.mutedForeground }]}>
-            {job.has_cv ? (job.has_cover_letter ? 'CV and cover letter ready' : 'Tailored CV ready') : 'Evaluated'}
-          </Text>
+          {tracked ? (
+            <>
+              <Feather name={stage.icon} size={14} color={stageTone.fg} />
+              <Text style={[type.labelCaption, { color: stageTone.fg }]}>{stage.label}</Text>
+            </>
+          ) : (
+            <>
+              <Feather name={job.has_cv ? 'file-text' : 'clock'} size={14} color={job.has_cv ? colors.success : colors.mutedForeground} />
+              <Text style={[type.labelCaption, { color: job.has_cv ? colors.success : colors.mutedForeground }]}>
+                {job.has_cv ? (job.has_cover_letter ? 'CV and cover letter ready' : 'Tailored CV ready') : 'Evaluated'}
+              </Text>
+            </>
+          )}
         </View>
         <Pressable
           onPress={open}
           accessibilityRole="button"
-          accessibilityLabel={primaryAction ? `Tailor a CV for ${title}` : `Review ${title}`}
+          accessibilityLabel={followUp ? `Follow up on ${title}` : primaryAction ? `Tailor a CV for ${title}` : `Review ${title}`}
           style={({ pressed }) => ({
             minHeight: 44,
             paddingHorizontal: 16,
@@ -249,7 +282,7 @@ function JobCard({ job, colors, onDelete }: { job: JobSummary; colors: Colors; o
             opacity: pressed ? 0.8 : 1,
           })}
         >
-          <Text style={[type.bodySemibold, { color: primaryAction ? colors.primaryForeground : colors.navy }]}>{primaryAction ? 'Tailor CV' : 'Review'}</Text>
+          <Text style={[type.bodySemibold, { color: primaryAction ? colors.primaryForeground : colors.navy }]}>{actionLabel}</Text>
         </Pressable>
       </View>
     </View>
