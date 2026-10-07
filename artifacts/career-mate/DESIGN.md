@@ -80,7 +80,8 @@ section name, initials avatar → Profile). Stack screens on top: Login
 - **Evaluate:** Link / Paste text / Upload segmented control, Paste-from-clipboard, a coach note naming the user's visa, "Run evaluation", and Recent assessments.
 - **Profile:** account card, dark work-rights panel (where you can work / who you can work for, per visa type), CV card, preferences list, "guidance only" note, privacy / sign out / delete account.
 
-- **Job detail:** header actions, work-rights banner, score, **"Where are you with this?"** (stage chips Not applied → Applied → Interviewing → Offer / Rejected / Withdrawn, a follow-up card when due with a drafted email to copy or share, and a history list), documents, A–H report.
+- **Job detail:** header actions, work-rights banner, score, **"Where are you with this?"** (stage chips Not applied → Applied → Interviewing → Offer / Rejected / Withdrawn, a follow-up card when due with a drafted email to copy or share, and a history list), the dark **interview prep** card (applied / interviewing / offer, or once built), documents, A–H report.
+- **Interview prep** (`app/prep/[id].tsx`): what they'll probe, the visa answer, a 60-second introduction, likely questions split Recruiter / Manager / The job (tap to expand the first-person answer, why they ask, and the CV line it uses; a fit chip says Strong example / Transferable / Prepare a story), questions to ask, stories to prepare, checklist, watch-outs, and Rebuild. Always says questions are predicted from the ad, not reported by past candidates.
 
 Rules from the redesign: the card body and its action button are siblings, never nested buttons; a job the user can't legally take never gets the coral "Tailor CV" call to action (it shows "Review").
 
@@ -98,6 +99,7 @@ Rules from the redesign: the card body and its action button are siblings, never
 | `VISA_SUMMARY` (in `WorkRights.tsx`) | One source of plain-English visa text (title, where you can work, who you can work for) used by Home and Profile; mirrors the API's rules |
 | `WorkRightsBanner` / `WorkRightsPicker` | Visa/work-rights verdict on job detail (eligible / check / not allowed / not set + JD quote + "guidance only") and the picker in Profile/Setup |
 | `ApplicationTracker` (+ `STATUS_META`, `toneColors`) | Stage picker, follow-up nudge and draft, history on job detail. When a follow-up is due is decided by the API (7 days after applying, 4 after an interview) |
+| `InterviewPrepCard`, `PrepQuestion`, `useBuildInterviewPrep` (`InterviewPrep.tsx`) | Prep entry card on job detail, expandable question card, and the build mutation that writes into the job's cached detail |
 | `AnimatedSection` | Collapsible report sections (mount-on-open) |
 | `SegmentedProgress`, `LoadingNotice` | Progress for slow operations (evaluation ~1–2 min) |
 | `ErrorNotice`, `WarningList` | Errors and document warnings |

@@ -32,6 +32,27 @@ export type TrackingState = {
   follow_up_due: boolean;
 };
 
+export type PrepAudience = 'recruiter_screen' | 'hiring_manager' | 'role_specific';
+
+export type InterviewPrep = {
+  overview: string;
+  elevator_pitch: string;
+  work_rights_answer: string;
+  questions: {
+    audience: PrepAudience;
+    question: string;
+    why_asked: string;
+    answer: string;
+    cv_evidence: string;
+    fit: 'strong' | 'partial' | 'none';
+  }[];
+  gap_stories: { topic: string; suggestion: string }[];
+  questions_to_ask: { audience: PrepAudience; question: string }[];
+  checklist: string[];
+  watch_outs: string[];
+  created_at: string;
+};
+
 export type JobSummary = {
   job_id: string;
   company: string | null;
@@ -49,6 +70,7 @@ export type JobDetail = JobSummary & {
   report: Record<string, string>;
   last_follow_up_at?: string | null;
   events?: JobEvent[];
+  interview_prep?: InterviewPrep | null;
   work_rights?: WorkRightsResult | null;
   [key: string]: unknown;
 };
@@ -220,6 +242,8 @@ export const api = {
     request<TrackingState & { job_id: string }>(`/jobs/${encodeURIComponent(id)}/follow-up`, { method: 'POST', body: {} }),
   draftFollowUp: (id: string) =>
     request<{ subject: string; body: string }>(`/jobs/${encodeURIComponent(id)}/follow-up/draft`, { method: 'POST', body: {} }),
+  buildInterviewPrep: (id: string) =>
+    request<{ job_id: string; interview_prep: InterviewPrep }>(`/jobs/${encodeURIComponent(id)}/interview-prep`, { method: 'POST', body: {} }),
   generateCv: (job_id: string) =>
     request<{
       pdf_url: string;

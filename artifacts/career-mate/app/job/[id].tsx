@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Linking, Pressable, Share, Text, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
+import { useAuth } from '@/context/AuthContext';
 import { api, getDocumentUrl, isApiError } from '@/lib/api';
 import { reportLabels } from '@/lib/config';
 import { useColors } from '@/hooks/useColors';
@@ -12,6 +13,7 @@ import type { ProgressStep } from '@/components/ui';
 import { ReportView } from '@/components/ReportView';
 import { WorkRightsBanner } from '@/components/WorkRights';
 import { ApplicationTracker } from '@/components/ApplicationTracker';
+import { InterviewPrepCard } from '@/components/InterviewPrep';
 
 function documentErrorMessage(error: unknown) {
   return isApiError(error) && error.status === 429 ? error.message : 'We couldn’t generate that document. You can try again.';
@@ -21,12 +23,18 @@ export default function JobDetail() {
   const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [openSection, setOpenSection] = useState('');
-  const job = useQuery({ queryKey: ['job', id], queryFn: () => api.getJob(id), enabled: !!id });
+  // Opened straight from a link, this screen can mount before the saved
+  // session is restored; a request then would go out without a token, get a
+  // 401 and sign the user out. Wait for the session, and send signed-out
+  // visitors to the start screen.
+  const { session, hydrated } = useAuth();
+  const job = useQuery({ queryKey: ['job', id], queryFn: () => api.getJob(id), enabled: !!id && !!session });
   const cvMutation = useMutation({ mutationFn: () => api.generateCv(id) });
   const coverMutation = useMutation({ mutationFn: () => api.generateCoverLetter(id) });
   const { confirmDelete, isDeleting } = useDeleteJob();
 
-  if (job.isLoading) return <Screen scroll={false}><LoadingState title="Opening your evaluation" detail="Gathering the role match and recommendations." /></Screen>;
+  if (hydrated && !session) return <Redirect href="/" />;
+  if (!hydrated || job.isLoading) return <Screen scroll={false}><LoadingState title="Opening your evaluation" detail="Gathering the role match and recommendations." /></Screen>;
   if (job.isError || !job.data) return <Screen><IconButton icon="arrow-left" onPress={() => router.back()} label="Go back" /><ErrorNotice message={job.error instanceof Error ? job.error.message : 'We could not load this evaluation.'} onRetry={() => void job.refetch()} /></Screen>;
 
   const data = job.data;
@@ -65,6 +73,7 @@ export default function JobDetail() {
         </View>
       </View>
       <ApplicationTracker job={data} />
+      <InterviewPrepCard job={data} />
       <View style={{ gap: 11 }}>
         <DetailSectionTitle icon="file-text" title="Documents" />
         <DocumentAction
