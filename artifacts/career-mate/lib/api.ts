@@ -53,6 +53,30 @@ export type InterviewPrep = {
   created_at: string;
 };
 
+type InsightJobRef = { job_id: string; title: string | null; company: string | null };
+
+export type CareerInsights = {
+  summary: string;
+  adjacent_titles: {
+    title: string;
+    axis: 'lateral' | 'stretch' | 'pivot';
+    cv_evidence: string;
+    why: string;
+    gap_note: string;
+    search_tip: string;
+  }[];
+  skill_gaps: {
+    skill: string;
+    kind: 'tooling' | 'domain' | 'soft' | 'credential';
+    how_to_start: string;
+    seen_in: number;
+    jobs: InsightJobRef[];
+  }[];
+  strengths: { strength: string; cv_evidence: string; seen_in: number; jobs: InsightJobRef[] }[];
+  jobs_considered: number;
+  created_at: string;
+};
+
 export type JobSummary = {
   job_id: string;
   company: string | null;
@@ -242,6 +266,8 @@ export const api = {
     request<TrackingState & { job_id: string }>(`/jobs/${encodeURIComponent(id)}/follow-up`, { method: 'POST', body: {} }),
   draftFollowUp: (id: string) =>
     request<{ subject: string; body: string }>(`/jobs/${encodeURIComponent(id)}/follow-up/draft`, { method: 'POST', body: {} }),
+  getInsights: () => request<{ insights: CareerInsights | null }>('/profile/insights'),
+  buildInsights: () => request<{ insights: CareerInsights }>('/profile/insights', { method: 'POST', body: {} }),
   buildInterviewPrep: (id: string) =>
     request<{ job_id: string; interview_prep: InterviewPrep }>(`/jobs/${encodeURIComponent(id)}/interview-prep`, { method: 'POST', body: {} }),
   generateCv: (job_id: string) =>

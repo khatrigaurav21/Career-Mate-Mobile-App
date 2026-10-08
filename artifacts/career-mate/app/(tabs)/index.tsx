@@ -6,7 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { api, JobSummary } from '@/lib/api';
-import type { WorkRights, WorkRightsVerdict } from '@/lib/api';
+import type { CareerInsights, WorkRights, WorkRightsVerdict } from '@/lib/api';
 import { useColors } from '@/hooks/useColors';
 import { useDeleteJob } from '@/hooks/useDeleteJob';
 import { type } from '@/constants/typography';
@@ -28,6 +28,7 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const { session, profile } = useAuth();
   const pipeline = useQuery({ queryKey: ['pipeline'], queryFn: api.getPipeline, enabled: !!session });
+  const insights = useQuery({ queryKey: ['insights'], queryFn: api.getInsights, enabled: !!session && (pipeline.data?.jobs.length ?? 0) > 0 });
   const { confirmDelete } = useDeleteJob();
   const [filter, setFilter] = useState<Filter>('all');
 
@@ -119,7 +120,14 @@ export default function Home() {
             </View>
           )
         }
-        ListFooterComponent={pipeline.isLoading ? null : <FindRoleCard colors={colors} />}
+        ListFooterComponent={
+          pipeline.isLoading ? null : (
+            <View style={{ gap: 12 }}>
+              {jobs.length > 0 && <InsightsCard insights={insights.data?.insights ?? null} colors={colors} />}
+              <FindRoleCard colors={colors} />
+            </View>
+          )
+        }
       />
     </View>
   );
@@ -289,9 +297,49 @@ function JobCard({ job, colors, onDelete }: { job: JobSummary; colors: Colors; o
   );
 }
 
+function InsightsCard({ insights, colors }: { insights: CareerInsights | null; colors: Colors }) {
+  const detail = insights
+    ? [
+        `${insights.adjacent_titles.length} ${insights.adjacent_titles.length === 1 ? 'title' : 'titles'} to search for`,
+        insights.skill_gaps.length > 0 && `${insights.skill_gaps.length} recurring skill ${insights.skill_gaps.length === 1 ? 'gap' : 'gaps'}`,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : 'See job titles you’re not searching for and the skills your evaluated jobs keep asking about.';
+  return (
+    <Pressable
+      onPress={() => router.push('/insights')}
+      accessibilityRole="button"
+      accessibilityLabel="Career insights"
+      accessibilityHint="Opens job titles to search for and recurring skill gaps"
+      style={({ pressed }) => ({
+        backgroundColor: colors.card,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 18,
+        padding: 16,
+        flexDirection: 'row',
+        gap: 12,
+        alignItems: 'center',
+        marginTop: 4,
+        opacity: pressed ? 0.85 : 1,
+      })}
+    >
+      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}>
+        <Feather name="compass" size={18} color={colors.teal} />
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[type.titleCard, { color: colors.navy }]}>Roles you might be missing</Text>
+        <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>{detail}</Text>
+      </View>
+      <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+    </Pressable>
+  );
+}
+
 function FindRoleCard({ colors }: { colors: Colors }) {
   return (
-    <View style={{ backgroundColor: colors.inkPanel, borderRadius: 18, padding: 18, gap: 12, marginTop: 4 }}>
+    <View style={{ backgroundColor: colors.inkPanel, borderRadius: 18, padding: 18, gap: 12 }}>
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' }}>
           <Feather name="share-2" size={18} color={colors.primary} />
