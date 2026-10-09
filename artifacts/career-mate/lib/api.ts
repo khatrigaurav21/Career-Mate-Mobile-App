@@ -105,13 +105,22 @@ export type Session = {
   expires_in: number;
   user_id: string;
   email: string;
+  // When the access token expires (ms since epoch), worked out on this device
+  // when the session arrives. Sessions saved before this existed lack it.
+  expires_at?: number;
 };
+
+export function withExpiry(session: Session): Session {
+  return { ...session, expires_at: Date.now() + session.expires_in * 1000 };
+}
 
 type RequestOptions = {
   method?: string;
   body?: unknown;
   token?: string | null;
   headers?: Record<string, string>;
+  // Sign-in and refresh calls: never try to refresh around them.
+  skipAuthRefresh?: boolean;
 };
 
 let tokenGetter: (() => string | null) | null = null;
@@ -123,6 +132,31 @@ export function setTokenGetter(getter: () => string | null) {
 
 export function setUnauthorizedHandler(handler: () => void) {
   unauthorizedHandler = handler;
+}
+
+// Access tokens last an hour. The refresher (from AuthContext) swaps the
+// refresh token for a new session and resolves to the new access token, or
+// null when the session can't be renewed (then the user is signed out).
+type SessionRefresher = () => Promise<string | null>;
+let sessionRefresher: SessionRefresher | null = null;
+let expiresAtGetter: (() => number | null) | null = null;
+let refreshInFlight: Promise<string | null> | null = null;
+const REFRESH_MARGIN_MS = 60_000;
+
+export function setSessionRefresher(refresher: SessionRefresher, getExpiresAt: () => number | null) {
+  sessionRefresher = refresher;
+  expiresAtGetter = getExpiresAt;
+}
+
+// Supabase refresh tokens are single-use: refreshing twice in parallel would
+// spend the same token twice, which Supabase can treat as theft and revoke
+// the whole session. So every caller shares one refresh at a time.
+function refreshSessionOnce(): Promise<string | null> {
+  if (!sessionRefresher) return Promise.resolve(null);
+  refreshInFlight ??= sessionRefresher().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
 }
 
 export class ApiError extends Error {
@@ -149,22 +183,39 @@ export class ApiError extends Error {
 
 async function request<T>(
   path: string,
-  { method = 'GET', body, token, headers = {} }: RequestOptions = {},
+  { method = 'GET', body, token, headers = {}, skipAuthRefresh = false }: RequestOptions = {},
 ): Promise<T> {
-  const authToken = token ?? tokenGetter?.() ?? null;
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers: {
-      Accept: 'application/json',
-      ...(body && !(body instanceof FormData)
-        ? { 'Content-Type': 'application/json' }
-        : {}),
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      ...headers,
-    },
-    body:
-      body && !(body instanceof FormData) ? JSON.stringify(body) : (body as BodyInit),
-  });
+  const send = (authToken: string | null) =>
+    fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers: {
+        Accept: 'application/json',
+        ...(body && !(body instanceof FormData)
+          ? { 'Content-Type': 'application/json' }
+          : {}),
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...headers,
+      },
+      body:
+        body && !(body instanceof FormData) ? JSON.stringify(body) : (body as BodyInit),
+    });
+
+  let authToken = token ?? tokenGetter?.() ?? null;
+  // Renew just before expiry rather than waiting for a 401.
+  if (authToken && !token && !skipAuthRefresh) {
+    const expiresAt = expiresAtGetter?.();
+    if (expiresAt && expiresAt - Date.now() < REFRESH_MARGIN_MS) {
+      authToken = (await refreshSessionOnce()) ?? authToken;
+    }
+  }
+  let response = await send(authToken);
+  if (response.status === 401 && authToken && !skipAuthRefresh) {
+    // Another request may already have renewed the session; use that token
+    // rather than spending the refresh token again.
+    const current = tokenGetter?.() ?? null;
+    const fresh = current && current !== authToken ? current : await refreshSessionOnce();
+    if (fresh) response = await send(fresh);
+  }
   const text = await response.text();
   let data: Record<string, unknown> = {};
   if (text) {
@@ -174,7 +225,7 @@ async function request<T>(
       data = { message: text };
     }
   }
-  if (response.status === 401) {
+  if (response.status === 401 && !skipAuthRefresh) {
     unauthorizedHandler?.();
   }
   if (!response.ok) {
@@ -206,11 +257,19 @@ export const api = {
     request<{ message: string }>('/auth/magic-link', {
       method: 'POST',
       body: { email },
+      skipAuthRefresh: true,
     }),
   verify: (email: string, code: string) =>
     request<Session>('/auth/verify', {
       method: 'POST',
       body: { email, code },
+      skipAuthRefresh: true,
+    }),
+  refreshSession: (refresh_token: string) =>
+    request<Session>('/auth/refresh', {
+      method: 'POST',
+      body: { refresh_token },
+      skipAuthRefresh: true,
     }),
   getProfile: (token?: string | null) => request<Profile>('/profile', { token }),
   uploadProfile: (uri: string, name: string, type?: string) =>

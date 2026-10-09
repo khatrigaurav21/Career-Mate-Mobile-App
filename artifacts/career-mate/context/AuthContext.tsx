@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { setErrorReportingUser } from '@/lib/errorReporting';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SESSION_KEY } from '@/lib/config';
-import { api, Profile, Session, setTokenGetter, setUnauthorizedHandler } from '@/lib/api';
+import { api, isApiError, Profile, Session, setSessionRefresher, setTokenGetter, setUnauthorizedHandler, withExpiry } from '@/lib/api';
 
 type AuthContextValue = {
   session: Session | null;
@@ -57,9 +57,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profileChecked, setProfileChecked] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const queryClient = useQueryClient();
+  // The session the refresher renews. A ref, not state, because the API
+  // client calls the refresher outside React's render cycle.
+  const sessionRef = useRef<Session | null>(null);
+
+  // Every new or renewed session goes through here, so the API client, the
+  // refresher, React state and secure storage never disagree.
+  const adoptSession = async (next: Session) => {
+    applySessionToken(next);
+    sessionRef.current = next;
+    setSession(next);
+    await writeSession(JSON.stringify(next));
+  };
 
   const signOut = async () => {
     applySessionToken(null);
+    sessionRef.current = null;
     setSession(null);
     setProfile(null);
     setProfileChecked(false);
@@ -86,11 +99,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (nextSession: Session) => {
-    applySessionToken(nextSession);
-    setSession(nextSession);
-    await writeSession(JSON.stringify(nextSession));
-    await refreshProfile(nextSession.access_token);
+    const timed = withExpiry(nextSession);
+    await adoptSession(timed);
+    await refreshProfile(timed.access_token);
   };
+
+  // Renews the session with its refresh token. Resolves to the new access
+  // token, or null if the server says the session is over (revoked, expired,
+  // account deleted) — the API client then signs the user out. Network
+  // failures throw instead, so being offline never signs anyone out.
+  useEffect(() => {
+    setSessionRefresher(
+      async () => {
+        const current = sessionRef.current;
+        if (!current?.refresh_token) return null;
+        try {
+          const renewed = withExpiry(await api.refreshSession(current.refresh_token));
+          // Signed out while the refresh was in flight: don't resurrect it.
+          if (sessionRef.current?.refresh_token !== current.refresh_token) return null;
+          await adoptSession(renewed);
+          return renewed.access_token;
+        } catch (error) {
+          if (isApiError(error) && (error.status === 400 || error.status === 401)) return null;
+          throw error;
+        }
+      },
+      () => sessionRef.current?.expires_at ?? null,
+    );
+  }, []);
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
@@ -107,8 +143,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setHydrated(true);
           return;
         }
+        // May be hours old, or saved before expires_at existed; either way
+        // the API client renews it on first use.
         const restored = JSON.parse(stored) as Session;
         applySessionToken(restored);
+        sessionRef.current = restored;
         setSession(restored);
         try {
           await refreshProfile(restored.access_token);

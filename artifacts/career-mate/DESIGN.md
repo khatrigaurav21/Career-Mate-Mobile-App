@@ -137,5 +137,7 @@ location) and the CV file name (only the text is stored).
 
 These are build/feature wiring, not UI: `eas.json`, the `plugins` section of
 `app.json`, `lib/errorReporting.ts`, `components/ShareIntentHandler.tsx`,
-`app/+native-intent.tsx`. The Evaluate tab's effect that applies shared jobs
+`app/+native-intent.tsx`, the session code in `context/AuthContext.tsx` and the
+`request` / refresh logic in `lib/api.ts` (it renews the 1-hour login token
+once at a time; a careless edit signs everyone out). The Evaluate tab's effect that applies shared jobs
 (`sharedUrl` / `sharedText` / `shareId` params) must stay.
