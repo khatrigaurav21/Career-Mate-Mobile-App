@@ -13,6 +13,8 @@ import { type } from '@/constants/typography';
 import { AppHeader } from '@/components/AppHeader';
 import { VISA_SUMMARY } from '@/components/WorkRights';
 import { STATUS_META, toneColors } from '@/components/ApplicationTracker';
+import { GettingStarted, gettingStartedSteps } from '@/components/GettingStarted';
+import { useOnboarding } from '@/lib/onboarding';
 import { Button, ErrorNotice, SectionEyebrow } from '@/components/ui';
 
 type Colors = ReturnType<typeof useColors>;
@@ -30,6 +32,7 @@ export default function Home() {
   const pipeline = useQuery({ queryKey: ['pipeline'], queryFn: api.getPipeline, enabled: !!session });
   const insights = useQuery({ queryKey: ['insights'], queryFn: api.getInsights, enabled: !!session && (pipeline.data?.jobs.length ?? 0) > 0 });
   const { confirmDelete } = useDeleteJob();
+  const onboarding = useOnboarding();
   const [filter, setFilter] = useState<Filter>('all');
 
   const jobs = pipeline.data?.jobs ?? [];
@@ -46,6 +49,8 @@ export default function Home() {
   const visible =
     filter === 'ready' ? jobs.filter((j) => j.has_cv) : filter === 'active' ? jobs.filter((j) => ACTIVE.has(j.status)) : jobs;
   const workRights = (profile?.preferences?.work_rights as WorkRights | undefined) ?? null;
+  const steps = gettingStartedSteps({ jobs, workRights, insights: insights.data?.insights ?? null });
+  const showChecklist = onboarding.ready && !onboarding.checklistHidden && !pipeline.isLoading;
 
   if (pipeline.isError) {
     return (
@@ -75,6 +80,7 @@ export default function Home() {
               <Text style={[type.headlineLg, { color: colors.navy }]}>Active roles</Text>
               <Text style={[type.bodyLg, { color: colors.mutedForeground }]}>Every role is checked against your CV and your work rights.</Text>
             </View>
+            {showChecklist && <GettingStarted steps={steps} onHide={() => void onboarding.hideChecklist()} />}
             <VisaCard workRights={workRights} colors={colors} />
             {jobs.length > 0 && (
               <>

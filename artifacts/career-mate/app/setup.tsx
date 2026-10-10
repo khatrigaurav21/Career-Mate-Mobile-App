@@ -86,7 +86,7 @@ export default function Setup() {
         await api.setWorkRights(workRights).catch(() => {});
       }
       await refreshProfile();
-      router.replace('/(tabs)');
+      router.replace('/welcome');
     } catch (submitError) {
       if (isFallbackToPaste(submitError)) {
         setMode('paste');

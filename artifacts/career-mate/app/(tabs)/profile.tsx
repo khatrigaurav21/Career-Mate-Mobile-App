@@ -12,6 +12,7 @@ import { type } from '@/constants/typography';
 import { api } from '@/lib/api';
 import type { WorkRights } from '@/lib/api';
 import { PRIVACY_POLICY_URL } from '@/lib/config';
+import { useOnboarding } from '@/lib/onboarding';
 
 type Colors = ReturnType<typeof useColors>;
 
@@ -28,6 +29,7 @@ function updatedLabel(iso?: string) {
 export default function Profile() {
   const colors = useColors();
   const { profile, session, signOut, refreshProfile } = useAuth();
+  const onboarding = useOnboarding();
   const savedWorkRights = (profile?.preferences?.work_rights as WorkRights | undefined) ?? null;
   const [editingRights, setEditingRights] = useState(false);
   const [draftRights, setDraftRights] = useState<WorkRights | null>(savedWorkRights);
@@ -171,6 +173,14 @@ export default function Profile() {
         </View>
 
         <View style={{ gap: 2 }}>
+          <LinkRow
+            icon="play-circle"
+            label="Show the app tour again"
+            onPress={() => {
+              void onboarding.restart().then(() => router.push('/welcome'));
+            }}
+            colors={colors}
+          />
           <LinkRow icon="shield" label="Privacy Policy" onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} colors={colors} />
           <LinkRow icon="log-out" label="Sign out" tone="primary" onPress={confirmSignOut} colors={colors} />
           <Pressable onPress={confirmDeleteAccount} disabled={deleting} accessibilityRole="button" style={{ minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
