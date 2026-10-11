@@ -125,8 +125,12 @@ Never claim what the app doesn't do: no "verified", "compliant", "accredited",
 postcode checks, closing dates, apply buttons, notifications or visa expiry.
 The app never sends an email for the user — follow-ups are drafts they copy
 or share and send themselves.
-Seek links can't be read by the server — always say "copy the description and
-paste it" for Seek. Visa text must differ by visa type (494 is tied to the
+Seek is never read by the server. For a Seek link, Evaluate asks for the job
+title and employer and the server looks for the employer's own copy (or a job
+board's copy); never promise it will be found — small employers often only
+use Seek, and the fallback is always "paste the ad text". A job read from
+another site always shows "Read from <site>" on job detail so the user can
+check it's the same job. Visa text must differ by visa type (494 is tied to the
 sponsoring employer). Every visa verdict carries "guidance only".
 
 ## Known gaps

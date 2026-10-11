@@ -353,7 +353,7 @@ function FindRoleCard({ colors }: { colors: Colors }) {
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={[type.titleCard, { color: colors.onNavy }]}>Found a role you like?</Text>
           <Text style={[type.bodyMd, { color: colors.onNavyMuted }]}>
-            Share a LinkedIn or company job link to Career Mate. For Seek ads, copy the job description and paste it into Evaluate.
+            Add a LinkedIn, company or Seek job link. For Seek, add the job title and employer and we’ll find the employer’s own copy.
           </Text>
         </View>
       </View>

@@ -64,6 +64,7 @@ export default function JobDetail() {
         <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13 }}>{data.company || 'Company not listed'}</Text>
         <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 29, lineHeight: 35, letterSpacing: -0.8 }}>{data.title || 'Untitled role'}</Text>
       </View>
+      {data.content_url ? <SourceNote url={data.content_url} /> : null}
       {data.work_rights && <WorkRightsBanner workRights={data.work_rights} />}
       <View style={{ borderRadius: 24, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 18 }}>
         <ScoreRing score={data.score} size={92} mutedColor={colors.mutedForeground} />
@@ -131,6 +132,35 @@ export default function JobDetail() {
         })}
       </View>
     </Screen>
+  );
+}
+
+// The ad was read from another site (Seek won't let apps read its ads), so say
+// which one and let the user check it's the same job.
+function SourceNote({ url }: { url: string }) {
+  const colors = useColors();
+  let host = url;
+  try {
+    host = new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    // keep the raw URL
+  }
+  return (
+    <Pressable
+      onPress={() => void Linking.openURL(url)}
+      accessibilityRole="link"
+      accessibilityLabel={`Read from ${host}. Opens that page so you can check it's the same job.`}
+      style={({ pressed }) => ({ backgroundColor: colors.warningSoft, borderRadius: 14, padding: 12, flexDirection: 'row', gap: 10, opacity: pressed ? 0.8 : 1 })}
+    >
+      <Feather name="link" size={16} color={colors.warning} style={{ marginTop: 2 }} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ color: colors.warning, fontFamily: 'Inter_600SemiBold', fontSize: 14, lineHeight: 20 }}>Read from {host}</Text>
+        <Text style={{ color: colors.foreground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20 }}>
+          Seek doesn’t let apps read its ads, so we used this copy. Tap to check it’s the same job.
+        </Text>
+      </View>
+      <Feather name="external-link" size={16} color={colors.warning} style={{ marginTop: 2 }} />
+    </Pressable>
   );
 }
 

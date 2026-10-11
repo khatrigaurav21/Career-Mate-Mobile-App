@@ -11,7 +11,7 @@ import { VISA_SUMMARY } from '@/components/WorkRights';
 import { useColors } from '@/hooks/useColors';
 import { useAuth } from '@/context/AuthContext';
 import { type } from '@/constants/typography';
-import { api, isFallbackToPaste } from '@/lib/api';
+import { api, isFallbackToPaste, isSeekUrl } from '@/lib/api';
 import type { JobSummary, WorkRights } from '@/lib/api';
 
 type SubmitMode = 'link' | 'paste' | 'file';
@@ -31,6 +31,10 @@ export default function SubmitJob() {
   const [fromShare, setFromShare] = useState(false);
   const [mode, setMode] = useState<SubmitMode>('link');
   const [url, setUrl] = useState('');
+  // For Seek links: typed by the user from the ad, so the server can find
+  // the employer's own copy (it can't read Seek).
+  const [seekTitle, setSeekTitle] = useState('');
+  const [seekCompany, setSeekCompany] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [loading, setLoading] = useState(false);
@@ -51,8 +55,12 @@ export default function SubmitJob() {
     setFromShare(true);
   }, [shareId, sharedUrl, sharedText]);
 
+  const seekLink = mode === 'link' && isSeekUrl(url);
+
   const resetForm = () => {
     setUrl('');
+    setSeekTitle('');
+    setSeekCompany('');
     setDescription('');
     setFile(null);
     setFromShare(false);
@@ -82,12 +90,15 @@ export default function SubmitJob() {
   const submit = async () => {
     setError('');
     if (mode === 'link' && !url.trim()) return setError('Paste the job posting link first.');
+    if (seekLink && (!seekTitle.trim() || !seekCompany.trim())) {
+      return setError('Add the job title and employer from the Seek ad, or use Paste text instead.');
+    }
     if (mode === 'paste' && description.trim().length < 80) return setError('Paste a little more of the job description so we can evaluate it.');
     if (mode === 'file' && !file) return setError('Choose the job description file first.');
     setLoading(true);
     try {
       const result = mode === 'link'
-        ? await api.evaluateUrl(url.trim())
+        ? await api.evaluateUrl(url.trim(), seekLink ? { job_title: seekTitle.trim(), job_company: seekCompany.trim() } : undefined)
         : mode === 'paste'
           ? await api.evaluateText(description.trim())
           : await api.evaluateFile(file!.uri, file!.name, file!.mimeType);
@@ -156,7 +167,21 @@ export default function SubmitJob() {
           {mode === 'link' && (
             <>
               <Field placeholder="https://www.linkedin.com/jobs/view/…" value={url} onChangeText={setUrl} keyboardType="url" autoCapitalize="none" autoCorrect={false} accessibilityLabel="Job post link" />
-              <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Works with LinkedIn and most company career sites. Seek blocks automated reading, so for Seek ads copy the description and use Paste text.</Text>
+              {seekLink ? (
+                <View style={{ gap: 10 }}>
+                  <View style={{ backgroundColor: colors.accent, borderRadius: 14, padding: 12, flexDirection: 'row', gap: 10 }}>
+                    <Feather name="search" size={16} color={colors.accentForeground} style={{ marginTop: 2 }} />
+                    <Text style={[type.bodyMd, { color: colors.accentForeground, flex: 1 }]}>
+                      Seek doesn’t let apps read its ads. Add the job title and employer from the ad and we’ll look for the employer’s own copy.
+                    </Text>
+                  </View>
+                  <Field placeholder="Job title, e.g. Fleet Coordinator" value={seekTitle} onChangeText={setSeekTitle} autoCapitalize="words" accessibilityLabel="Job title from the Seek ad" />
+                  <Field placeholder="Employer, e.g. NT Health" value={seekCompany} onChangeText={setSeekCompany} autoCapitalize="words" accessibilityLabel="Employer from the Seek ad" />
+                  <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Small businesses often only advertise on Seek. If we can’t find it, you’ll be asked to paste the ad text.</Text>
+                </View>
+              ) : (
+                <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Works with LinkedIn, company career sites and Seek.</Text>
+              )}
             </>
           )}
           {mode === 'paste' && (

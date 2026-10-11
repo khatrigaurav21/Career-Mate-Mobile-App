@@ -95,6 +95,9 @@ export type JobDetail = JobSummary & {
   last_follow_up_at?: string | null;
   events?: JobEvent[];
   interview_prep?: InterviewPrep | null;
+  // Where the ad was actually read from, when not the link the user gave
+  // (e.g. the employer's own copy of a Seek ad).
+  content_url?: string | null;
   work_rights?: WorkRightsResult | null;
   [key: string]: unknown;
 };
@@ -286,10 +289,12 @@ export const api = {
     }),
   getPipeline: () =>
     request<{ jobs: JobSummary[] }>('/pipeline'),
-  evaluateUrl: (job_url: string) =>
-    request<{ job_id: string; score: number; report: Record<string, string> }>(
+  // hints: the job title and employer, typed by the user for links the server
+  // can't read (Seek), so it can look for the employer's own copy instead.
+  evaluateUrl: (job_url: string, hints?: { job_title: string; job_company: string }) =>
+    request<{ job_id: string; score: number; report: Record<string, string>; content_url?: string | null }>(
       '/evaluate',
-      { method: 'POST', body: { job_url } },
+      { method: 'POST', body: { job_url, ...hints } },
     ),
   evaluateText: (job_description: string) =>
     request<{ job_id: string; score: number; report: Record<string, string> }>(
@@ -349,6 +354,17 @@ export const api = {
 
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError;
+}
+
+// Seek blocks automated reading; for its links the app asks for the job
+// title and employer so the server can find the employer's own copy.
+export function isSeekUrl(raw: string) {
+  try {
+    const host = new URL(raw.trim()).hostname.toLowerCase();
+    return ['seek.com.au', 'seek.com', 'seek.co.nz'].some((d) => host === d || host.endsWith(`.${d}`));
+  } catch {
+    return false;
+  }
 }
 
 export function isFallbackToPaste(error: unknown) {

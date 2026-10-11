@@ -18,7 +18,7 @@ type Slide = {
 };
 
 // Copy follows DESIGN.md's rules: no claims the app can't back (no
-// "verified", no auto-apply, no notifications), Seek always means paste,
+// "verified", no auto-apply, no notifications), Seek is never read directly,
 // and visa checks are guidance only.
 const SLIDES: Slide[] = [
   {
@@ -57,7 +57,10 @@ const SLIDES: Slide[] = [
       Platform.OS === 'android'
         ? 'Share a job link from LinkedIn or a company site straight to Career Mate, or paste it into Evaluate.'
         : 'Copy a job link from LinkedIn or a company site and paste it into Evaluate.',
-    points: ['Seek ads: copy the job description text and paste it in', 'Got the ad as a file? Upload a PDF or Word document'],
+    points: [
+      'Seek links: add the job title and employer and we’ll find the employer’s own copy — or paste the ad’s text',
+      'Got the ad as a file? Upload a PDF or Word document',
+    ],
   },
 ];
 
