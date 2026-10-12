@@ -223,7 +223,7 @@ export default function SubmitJob() {
                 {mode === 'link' ? 'Where can we find the role?' : mode === 'paste' ? 'Paste the job description.' : 'Upload the job posting.'}
               </Text>
               <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>
-                {mode === 'link' ? 'We’ll look for the employer’s job listing and check it against your profile.' : mode === 'paste' ? 'A little context helps us give you a more useful fit check.' : 'Choose a PDF, DOCX or text file, up to 5 MB.'}
+                {mode === 'link' ? 'We’ll read the listing and check it against your profile.' : mode === 'paste' ? 'A little context helps us give you a more useful fit check.' : 'Choose a PDF, DOCX or text file, up to 5 MB.'}
               </Text>
             </View>
 

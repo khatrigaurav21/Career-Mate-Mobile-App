@@ -1,0 +1,28 @@
+Three small follow-ups to the Terracotta & Eucalyptus redesign in artifacts/career-mate. Before starting, run `git pull` so you have the latest main.
+
+1. Dark mode palette
+   In constants/colors.ts, only the `light` palette was updated. The `dark` palette still has the old navy/coral values, so users whose phones are in dark mode see the old brand.
+   Add a dark version of Terracotta & Eucalyptus to the `dark` object, with every key the `light` object has (same names). Guidance:
+   - Backgrounds: a warm near-black, not navy (e.g. background ~#151412, card ~#1F1D1A, muted ~#2A2724, border ~#3A3632).
+   - Text: warm off-white foreground (~#F4EFE8); mutedForeground light enough to read on the card.
+   - primary: a lighter terracotta that stays readable on dark (around #E07A62), primaryForeground dark (#1C1C19).
+   - success/teal: a lighter eucalyptus (~#7FD1A8); successSoft / accent: a deep green (~#1E3A2E) with accentForeground light green.
+   - warning / destructive and their *Soft versions: dark tinted backgrounds with light text, same pattern.
+   - inkPanel / onNavy / onNavyMuted: keep these working for the dark "Found a role you like?" card and the work-rights panel.
+   Every text/background pair you use must have at least 4.5:1 contrast (WCAG AA). Check pairs like primary on card, mutedForeground on background, accentForeground on accent, success on successSoft, warning on warningSoft, destructive on destructiveSoft.
+
+2. Evaluate link-step wording
+   In app/(tabs)/submit.tsx, step 2 for the Link option says "We'll look for the employer's job listing and check it against your profile." That's only true for Seek links; for every other link we read that page directly.
+   Change it to: "We'll read the listing and check it against your profile."
+   Keep the Seek-specific note that appears when a Seek link is entered (it correctly explains we look for the employer's own copy).
+
+3. DESIGN.md
+   artifacts/career-mate/DESIGN.md still describes the old coral/navy "Warm Editorial Career Coach" system.
+   Update its Colour and Typography sections to the new Terracotta & Eucalyptus palette (light and dark) and Plus Jakarta Sans, and describe Evaluate as the 3-step flow (choose how to add → add it → review and start). Keep the existing rules sections as they are (copy rules, accessibility, minimum text sizes, "Don't change in a visual pass").
+
+Rules (unchanged, please keep to them):
+- Don't touch: eas.json, the `plugins` section of app.json, the `slug` / bundleIdentifier / package in app.json, lib/errorReporting.ts, components/ShareIntentHandler.tsx, app/+native-intent.tsx, context/AuthContext.tsx, or the request/session-refresh code in lib/api.ts.
+- In submit.tsx keep: the shareId effect, the Seek title + employer fields and the `job_title` / `job_company` hints sent by api.evaluateUrl, and the paste fallback.
+- Nothing below 12pt; body and card titles at least 16pt; touch targets at least 44pt.
+- Check both light and dark mode on Home, Evaluate (all 3 steps), a job screen, Interview prep and Profile before pushing.
+- Commit and push to main when done.
