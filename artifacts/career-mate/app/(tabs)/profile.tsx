@@ -110,7 +110,7 @@ export default function Profile() {
             </View>
             <View style={{ flex: 1, gap: 3 }}>
               <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Signed in as</Text>
-              <Text numberOfLines={1} style={[type.bodySemibold, { color: colors.navy }]}>{session?.email}</Text>
+              <Text numberOfLines={1} style={[type.bodySemibold, { color: colors.navy, flexShrink: 1 }]}>{session?.email}</Text>
               <View style={{ flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: 5, backgroundColor: savedWorkRights ? colors.successSoft : colors.warningSoft, borderRadius: 99, paddingHorizontal: 9, paddingVertical: 4 }}>
                 <Feather name={savedWorkRights ? 'check-circle' : 'info'} size={13} color={savedWorkRights ? colors.success : colors.warning} />
                 <Text style={[type.labelPill, { color: savedWorkRights ? colors.success : colors.warning }]}>{savedWorkRights ? 'Work rights added' : 'Add your work rights'}</Text>
@@ -143,13 +143,15 @@ export default function Profile() {
               </View>
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={[type.titleCard, { color: colors.navy }]}>Your CV</Text>
-                <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{updatedLabel(profile?.updated_at) ?? 'Used for every evaluation'}</Text>
+                <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{profile?.cv_markdown ? updatedLabel(profile.updated_at) ?? 'Used for every evaluation' : 'Not added yet'}</Text>
               </View>
             </View>
             {profile?.cv_markdown ? (
-              <Text numberOfLines={3} style={[type.bodyMd, { color: colors.mutedForeground }]}>{profile.cv_markdown.replace(/[#*_>`-]/g, '').trim()}</Text>
-            ) : null}
-            <Button onPress={() => router.push('/setup?redo=1')} variant="secondary" icon="refresh-cw">Update or replace CV</Button>
+              <Text numberOfLines={3} style={[type.bodyMd, { color: colors.mutedForeground, flexShrink: 1 }]}>{profile.cv_markdown.replace(/[#*_>`-]/g, '').trim()}</Text>
+            ) : (
+              <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>No CV added yet. Add one to personalize job evaluations.</Text>
+            )}
+            <Button onPress={() => router.push('/setup?redo=1')} variant="secondary" icon={profile?.cv_markdown ? 'refresh-cw' : 'file-text'}>{profile?.cv_markdown ? 'Update or replace CV' : 'Add a CV'}</Button>
           </View>
         </View>
 
@@ -164,12 +166,12 @@ export default function Profile() {
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={[type.bodySemibold, { color: colors.navy }]}>{row.label}</Text>
-                    <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>{row.value}</Text>
+                    <Text style={[type.bodyMd, { color: colors.mutedForeground, flexShrink: 1 }]}>{row.value}</Text>
                   </View>
                 </View>
               ))}
             </View>
-            <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Change these with “Update or replace CV”.</Text>
+            <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Change these with “{profile?.cv_markdown ? 'Update or replace CV' : 'Add a CV'}”.</Text>
           </View>
         )}
 
