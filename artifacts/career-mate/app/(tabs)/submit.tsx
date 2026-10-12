@@ -123,10 +123,10 @@ export default function SubmitJob() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppHeader section="Evaluate" />
       <Screen topInset={false}>
-        <View style={{ gap: 4 }}>
-          <SectionEyebrow>Role evaluation</SectionEyebrow>
+        <View style={{ gap: 5 }}>
+          <SectionEyebrow>Find your next move</SectionEyebrow>
           <Text style={[type.headlineLg, { color: colors.navy }]}>Evaluate a role</Text>
-          <Text style={[type.bodyLg, { color: colors.mutedForeground }]}>Add a job and we’ll check your fit and your work rights.</Text>
+          <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>Check the fit before you apply.</Text>
         </View>
 
         {fromShare && (
@@ -136,7 +136,7 @@ export default function SubmitJob() {
           </View>
         )}
 
-        <View style={{ flexDirection: 'row', backgroundColor: colors.muted, borderRadius: 18, padding: 4 }} accessibilityRole="tablist">
+        <View style={{ flexDirection: 'row', backgroundColor: colors.muted, borderRadius: 16, padding: 4 }} accessibilityRole="tablist">
           {MODES.map((m) => {
             const selected = mode === m.mode;
             return (
@@ -145,7 +145,7 @@ export default function SubmitJob() {
                 onPress={() => { setMode(m.mode); setError(''); }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected }}
-                style={{ flex: 1, minHeight: 48, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: selected ? colors.card : 'transparent' }}
+                style={{ flex: 1, minHeight: 48, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: selected ? colors.card : 'transparent', borderWidth: selected ? 1 : 0, borderColor: selected ? colors.border : 'transparent' }}
               >
                 <Feather name={m.icon} size={16} color={selected ? colors.primary : colors.mutedForeground} />
                 <Text style={[type.bodySemibold, { color: selected ? colors.navy : colors.mutedForeground }]}>{m.label}</Text>
@@ -154,7 +154,7 @@ export default function SubmitJob() {
           })}
         </View>
 
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 16, gap: 12 }}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 22, padding: 16, gap: 12 }}>
           {mode !== 'file' && (
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={[type.bodySemibold, { color: colors.navy }]}>{mode === 'link' ? 'Job post link' : 'Job description'}</Text>
@@ -240,11 +240,7 @@ function CoachNote({ workRights, colors }: { workRights: WorkRights | null; colo
     <View style={{ backgroundColor: colors.accent, borderRadius: 14, padding: 14, flexDirection: 'row', gap: 10 }}>
       <Feather name="compass" size={18} color={colors.accentForeground} style={{ marginTop: 2 }} />
       <Text style={[type.bodyMd, { color: colors.accentForeground, flex: 1 }]}>
-        {visa ? (
-          <>We’ll check the role’s location and requirements against your <Text style={{ fontFamily: 'Inter_700Bold' }}>{visa}</Text>, compare it with your CV, and score your fit.</>
-        ) : (
-          <>We’ll compare the role with your CV and score your fit. <Text style={{ fontFamily: 'Inter_700Bold' }}>Set your work rights in Profile</Text> to get a visa check too.</>
-        )}
+        {visa ? `We compare this role with your CV and ${visa} work rights.` : 'We compare the role with your CV. Add work rights in Profile to check visa fit.'}
       </Text>
     </View>
   );

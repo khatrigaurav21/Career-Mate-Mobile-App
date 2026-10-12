@@ -99,18 +99,27 @@ export default function Profile() {
       <AppHeader section="Profile" />
       <Screen topInset={false}>
         <View style={{ gap: 4 }}>
-          <SectionEyebrow>Your account</SectionEyebrow>
-          <Text style={[type.headlineLg, { color: colors.navy }]}>Profile & work rights</Text>
-          <Text style={[type.bodyLg, { color: colors.mutedForeground }]}>Your visa, your CV and your account.</Text>
+          <SectionEyebrow>Your profile</SectionEyebrow>
+          <Text style={[type.headlineLg, { color: colors.navy }]}>Career profile</Text>
         </View>
 
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: colors.inkPanel, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={[type.titleCard, { color: colors.onNavy }]}>{initialsFromEmail(session?.email)}</Text>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 22, padding: 16, gap: 14 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
+            <View style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={[type.titleCard, { color: colors.primaryForeground }]}>{initialsFromEmail(session?.email)}</Text>
+            </View>
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Signed in as</Text>
+              <Text numberOfLines={1} style={[type.bodySemibold, { color: colors.navy }]}>{session?.email}</Text>
+              <View style={{ flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: 5, backgroundColor: savedWorkRights ? colors.successSoft : colors.warningSoft, borderRadius: 99, paddingHorizontal: 9, paddingVertical: 4 }}>
+                <Feather name={savedWorkRights ? 'check-circle' : 'info'} size={13} color={savedWorkRights ? colors.success : colors.warning} />
+                <Text style={[type.labelPill, { color: savedWorkRights ? colors.success : colors.warning }]}>{savedWorkRights ? 'Work rights added' : 'Add your work rights'}</Text>
+              </View>
+            </View>
           </View>
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Signed in as</Text>
-            <Text numberOfLines={1} style={[type.bodySemibold, { color: colors.navy }]}>{session?.email}</Text>
+          <View style={{ flexDirection: 'row', gap: 9 }}>
+            <ProfileMetric icon="target" label="Target roles" value={String(profile?.target_roles?.length ?? 0)} colors={colors} />
+            <ProfileMetric icon="file-text" label="CV profile" value={profile?.cv_markdown ? 'Ready' : 'Add CV'} colors={colors} />
           </View>
         </View>
 
@@ -147,10 +156,12 @@ export default function Profile() {
         {preferenceRows.length > 0 && (
           <View style={{ gap: 10 }}>
             <SectionTitle icon="sliders" title="Preferences" colors={colors} />
-            <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 18, overflow: 'hidden' }}>
+            <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 22, overflow: 'hidden' }}>
               {preferenceRows.map((row, i) => (
                 <View key={row.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
-                  <Feather name={row.icon} size={18} color={colors.teal} />
+                  <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}>
+                    <Feather name={row.icon} size={17} color={colors.accentForeground} />
+                  </View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={[type.bodySemibold, { color: colors.navy }]}>{row.label}</Text>
                     <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>{row.value}</Text>
@@ -194,10 +205,22 @@ export default function Profile() {
   );
 }
 
+function ProfileMetric({ icon, label, value, colors }: { icon: keyof typeof Feather.glyphMap; label: string; value: string; colors: Colors }) {
+  return (
+    <View style={{ flex: 1, minHeight: 58, borderRadius: 14, backgroundColor: colors.muted, paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+      <Feather name={icon} size={17} color={colors.accentForeground} />
+      <View style={{ flex: 1 }}>
+        <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{label}</Text>
+        <Text style={[type.bodySemibold, { color: colors.navy }]}>{value}</Text>
+      </View>
+    </View>
+  );
+}
+
 function VisaPanel({ workRights, editing, onEdit, colors }: { workRights: WorkRights | null; editing: boolean; onEdit: () => void; colors: Colors }) {
   const summary = workRights ? VISA_SUMMARY[workRights.status] : null;
   return (
-    <View style={{ backgroundColor: colors.inkPanel, borderRadius: 18, padding: 18, gap: 14 }}>
+    <View style={{ backgroundColor: colors.inkPanel, borderRadius: 22, padding: 18, gap: 14 }}>
       <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
         <Feather name="shield" size={20} color={colors.onNavy} style={{ marginTop: 2 }} />
         <View style={{ flex: 1, gap: 2 }}>

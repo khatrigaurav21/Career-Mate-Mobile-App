@@ -14,6 +14,7 @@ import { ReportView } from '@/components/ReportView';
 import { WorkRightsBanner } from '@/components/WorkRights';
 import { ApplicationTracker } from '@/components/ApplicationTracker';
 import { InterviewPrepCard } from '@/components/InterviewPrep';
+import { type } from '@/constants/typography';
 
 function documentErrorMessage(error: unknown) {
   return isApiError(error) && error.status === 429 ? error.message : 'We couldn’t generate that document. You can try again.';
@@ -60,17 +61,20 @@ export default function JobDetail() {
           <IconButton icon="trash-2" onPress={() => { if (!isDeleting) confirmDelete(data, () => router.back()); }} label="Delete job" />
         </View>
       </View>
-      <View style={{ gap: 5 }}>
-        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 13 }}>{data.company || 'Company not listed'}</Text>
-        <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 29, lineHeight: 35, letterSpacing: -0.8 }}>{data.title || 'Untitled role'}</Text>
+      <View style={{ gap: 5, padding: 17, borderRadius: 22, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Feather name="briefcase" size={16} color={colors.teal} />
+          <Text style={[type.bodySemibold, { color: colors.mutedForeground }]}>{data.company || 'Company not listed'}</Text>
+        </View>
+        <Text style={[type.headlineLg, { color: colors.navy }]}>{data.title || 'Untitled role'}</Text>
       </View>
       {data.content_url ? <SourceNote url={data.content_url} /> : null}
       {data.work_rights && <WorkRightsBanner workRights={data.work_rights} />}
-      <View style={{ borderRadius: 24, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 19, flexDirection: 'row', alignItems: 'center', gap: 18 }}>
+      <View style={{ borderRadius: 22, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 17, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
         <ScoreRing score={data.score} size={92} mutedColor={colors.mutedForeground} />
         <View style={{ flex: 1, gap: 6 }}>
-          <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 18 }}>Your fit score</Text>
-          <Text style={{ color: colors.foreground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>{data.score === null ? 'We’re still processing this role.' : data.score >= 4 ? 'A strong match worth pursuing.' : data.score >= 2.8 ? 'There’s potential with the right positioning.' : 'Read the trade-offs before deciding.'}</Text>
+          <Text style={[type.titleCard, { color: colors.navy }]}>Your fit score</Text>
+          <Text style={[type.bodyMd, { color: colors.foreground }]}>{data.score === null ? 'We’re still processing this role.' : data.score >= 4 ? 'A strong match worth pursuing.' : data.score >= 2.8 ? 'There’s potential with the right positioning.' : 'Read the trade-offs before deciding.'}</Text>
         </View>
       </View>
       <ApplicationTracker job={data} />
@@ -154,8 +158,8 @@ function SourceNote({ url }: { url: string }) {
     >
       <Feather name="link" size={16} color={colors.warning} style={{ marginTop: 2 }} />
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ color: colors.warning, fontFamily: 'Inter_600SemiBold', fontSize: 14, lineHeight: 20 }}>Read from {host}</Text>
-        <Text style={{ color: colors.foreground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20 }}>
+        <Text style={{ color: colors.warning, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 16, lineHeight: 22 }}>Read from {host}</Text>
+        <Text style={{ color: colors.foreground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 16, lineHeight: 24 }}>
           Seek doesn’t let apps read its ads, so we used this copy. Tap to check it’s the same job.
         </Text>
       </View>
@@ -169,7 +173,7 @@ function DetailSectionTitle({ icon, title }: { icon: keyof typeof Feather.glyphM
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
       <Feather name={icon} size={18} color={colors.teal} />
-      <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 18 }}>{title}</Text>
+        <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 20, lineHeight: 28 }}>{title}</Text>
     </View>
   );
 }
@@ -193,11 +197,11 @@ function DocumentAction({
 }) {
   const colors = useColors();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 17, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.72 : 1 })}>
+    <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.72 : 1 })}>
       <View style={{ width: 41, height: 41, borderRadius: 13, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}><Feather name={icon} size={19} color={colors.teal} /></View>
       <View style={{ flex: 1, gap: 4 }}>
-        <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>{title}</Text>
-        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12 }}>{description}</Text>
+        <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, lineHeight: 22 }}>{title}</Text>
+        <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_500Medium', fontSize: 12, lineHeight: 16 }}>{description}</Text>
         {loading && <SegmentedProgress steps={progressSteps} />}
       </View>
       {loading ? (
