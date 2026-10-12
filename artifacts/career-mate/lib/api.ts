@@ -296,6 +296,14 @@ export const api = {
       '/evaluate',
       { method: 'POST', body: { job_url, ...hints } },
     ),
+  // The ad's text, read on the user's phone from a page they opened in the
+  // in-app browser (app/read-ad.tsx), plus the link it came from. The server
+  // evaluates the text and keeps the link as the job's source.
+  evaluateCaptured: (job_description: string, job_url: string) =>
+    request<{ job_id: string; score: number; report: Record<string, string> }>(
+      '/evaluate',
+      { method: 'POST', body: { job_description, job_url } },
+    ),
   evaluateText: (job_description: string) =>
     request<{ job_id: string; score: number; report: Record<string, string> }>(
       '/evaluate',

@@ -130,12 +130,17 @@ Never claim what the app doesn't do: no "verified", "compliant", "accredited",
 postcode checks, closing dates, apply buttons, notifications or visa expiry.
 The app never sends an email for the user — follow-ups are drafts they copy
 or share and send themselves.
-Seek is never read by the server. For a Seek link, Evaluate asks for the job
-title and employer and the server looks for the employer's own copy (or a job
-board's copy); never promise it will be found — small employers often only
-use Seek, and the fallback is always "paste the ad text". A job read from
-another site always shows "Read from <site>" on job detail so the user can
-check it's the same job. Visa text must differ by visa type (494 is tied to the
+Seek and Indeed are never read by the server (they block it). For their
+links, Evaluate opens the ad on the user's phone in the in-app browser
+(`app/read-ad.tsx`); the user sees the real page and taps "Use this ad", and
+the app reads the page text, as career-ops does in a desktop browser. Never
+hide that browser or capture without the tap, and never try to get past a
+"verify you're human" check: the user completes it themselves. Fallback:
+"Can't open it? Search for the employer's copy instead" asks for the job
+title and employer and the server looks for the employer's (or a job
+board's) copy; never promise it will be found. A job read from another site
+always shows "Read from <site>" on job detail so the user can check it's the
+same job. Visa text must differ by visa type (494 is tied to the
 sponsoring employer). Every visa verdict carries "guidance only".
 
 ## Known gaps
@@ -150,5 +155,7 @@ These are build/feature wiring, not UI: `eas.json`, the `plugins` section of
 `app.json`, `lib/errorReporting.ts`, `components/ShareIntentHandler.tsx`,
 `app/+native-intent.tsx`, the session code in `context/AuthContext.tsx` and the
 `request` / refresh logic in `lib/api.ts` (it renews the 1-hour login token
-once at a time; a careless edit signs everyone out). The Evaluate tab's effect that applies shared jobs
+once at a time; a careless edit signs everyone out), and `lib/adCapture.ts`
+plus the WebView wiring in `app/read-ad.tsx` (the page selectors that read
+Seek and Indeed ads; restyle the screen's header and bottom bar freely). The Evaluate tab's effect that applies shared jobs
 (`sharedUrl` / `sharedText` / `shareId` params) must stay.

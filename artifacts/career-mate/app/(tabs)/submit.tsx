@@ -49,6 +49,11 @@ export default function SubmitJob() {
   // employer and look for the employer's own copy.
   const blockedSite = mode === 'link' ? blockedJobSite(url) : null;
   const seekLink = blockedSite !== null;
+  // Seek/Indeed: by default the ad is opened on the phone (app/read-ad.tsx)
+  // and read from there. Searching for the employer's copy by title and
+  // employer is the fallback for when the ad won't open.
+  const [searchInstead, setSearchInstead] = useState(false);
+  const withHints = seekLink && searchInstead;
 
   // The Evaluate tab stays mounted, so apply every newly received share.
   useEffect(() => {
@@ -66,6 +71,7 @@ export default function SubmitJob() {
     setUrl('');
     setSeekTitle('');
     setSeekCompany('');
+    setSearchInstead(false);
     setDescription('');
     setFile(null);
     setFromShare(false);
@@ -75,7 +81,7 @@ export default function SubmitJob() {
 
   const validationMessage = () => {
     if (mode === 'link' && !url.trim()) return 'Paste the job posting link first.';
-    if (seekLink && (!seekTitle.trim() || !seekCompany.trim())) {
+    if (withHints && (!seekTitle.trim() || !seekCompany.trim())) {
       return `Add the job title and employer from the ${blockedSite} ad, or use Paste text instead.`;
     }
     if (mode === 'paste' && description.trim().length < 80) return 'Paste a little more of the job description so we can evaluate it.';
@@ -134,10 +140,14 @@ export default function SubmitJob() {
       setStep(2);
       return;
     }
+    if (seekLink && !searchInstead) {
+      router.push({ pathname: '/read-ad', params: { url: url.trim() } });
+      return;
+    }
     setLoading(true);
     try {
       const result = mode === 'link'
-        ? await api.evaluateUrl(url.trim(), seekLink ? { job_title: seekTitle.trim(), job_company: seekCompany.trim() } : undefined)
+        ? await api.evaluateUrl(url.trim(), withHints ? { job_title: seekTitle.trim(), job_company: seekCompany.trim() } : undefined)
         : mode === 'paste'
           ? await api.evaluateText(description.trim())
           : await api.evaluateFile(file!.uri, file!.name, file!.mimeType);
@@ -242,11 +252,25 @@ export default function SubmitJob() {
                   <Field placeholder="https://…" value={url} onChangeText={setUrl} keyboardType="url" autoCapitalize="none" autoCorrect={false} accessibilityLabel="Job post link" />
                   {seekLink ? (
                     <View style={{ gap: 12, marginTop: 4 }}>
-                      <GuidanceCard colors={colors} icon="search" text={`${blockedSite} doesn’t let apps read its ads. Add the title and employer so we can look for the employer’s own copy.`} />
-                      <Text style={[type.bodySemibold, { color: colors.navy }]}>{`Job title from the ${blockedSite} ad`}</Text>
-                      <Field placeholder="e.g. Fleet Coordinator" value={seekTitle} onChangeText={setSeekTitle} autoCapitalize="words" accessibilityLabel={`Job title from the ${blockedSite} ad`} />
-                      <Text style={[type.bodySemibold, { color: colors.navy }]}>Employer</Text>
-                      <Field placeholder="e.g. NT Health" value={seekCompany} onChangeText={setSeekCompany} autoCapitalize="words" accessibilityLabel={`Employer from the ${blockedSite} ad`} />
+                      {!searchInstead ? (
+                        <>
+                          <GuidanceCard colors={colors} icon="smartphone" text={`${blockedSite} doesn’t let apps read its ads from a server, so we’ll open the ad here on your phone. When you can see it, tap Use this ad.`} />
+                          <Pressable onPress={() => setSearchInstead(true)} accessibilityRole="button" hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }}>
+                            <Text style={[type.bodySemibold, { color: colors.primary }]}>Can’t open it? Search for the employer’s copy instead</Text>
+                          </Pressable>
+                        </>
+                      ) : (
+                        <>
+                          <GuidanceCard colors={colors} icon="search" text={`Add the title and employer from the ${blockedSite} ad and we’ll look for the employer’s own copy.`} />
+                          <Text style={[type.bodySemibold, { color: colors.navy }]}>{`Job title from the ${blockedSite} ad`}</Text>
+                          <Field placeholder="e.g. Fleet Coordinator" value={seekTitle} onChangeText={setSeekTitle} autoCapitalize="words" accessibilityLabel={`Job title from the ${blockedSite} ad`} />
+                          <Text style={[type.bodySemibold, { color: colors.navy }]}>Employer</Text>
+                          <Field placeholder="e.g. NT Health" value={seekCompany} onChangeText={setSeekCompany} autoCapitalize="words" accessibilityLabel={`Employer from the ${blockedSite} ad`} />
+                          <Pressable onPress={() => setSearchInstead(false)} accessibilityRole="button" hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }}>
+                            <Text style={[type.bodySemibold, { color: colors.primary }]}>Open the ad on my phone instead</Text>
+                          </Pressable>
+                        </>
+                      )}
                     </View>
                   ) : (
                     <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>Works with LinkedIn, company career sites, Seek and Indeed.</Text>
@@ -292,7 +316,8 @@ export default function SubmitJob() {
               {mode === 'link' && (
                 <>
                   <SummaryRow label="Job posting" value={url.trim()} colors={colors} />
-                  {seekLink && <SummaryRow label="Role" value={`${seekTitle.trim()} · ${seekCompany.trim()}`} colors={colors} />}
+                  {withHints && <SummaryRow label="Role" value={`${seekTitle.trim()} · ${seekCompany.trim()}`} colors={colors} />}
+                  {seekLink && !searchInstead && <SummaryRow label="Next" value="We’ll open the ad on your phone. Tap Use this ad when you can see it." colors={colors} />}
                 </>
               )}
               {mode === 'paste' && <SummaryRow label="Job details" value={`${description.trim().length} characters added`} colors={colors} />}
@@ -311,7 +336,7 @@ export default function SubmitJob() {
         )}
         {error ? <ErrorNotice message={error} /> : null}
         <Button onPress={step === 3 ? submit : continueStep} loading={loading} icon={step === 3 ? 'check' : 'arrow-right'} style={{ minHeight: 52, borderRadius: 16 }}>
-          {step === 3 ? 'Start my role check' : 'Continue'}
+          {step === 3 ? (seekLink && !searchInstead ? 'Open the ad' : 'Start my role check') : 'Continue'}
         </Button>
 
         {step === 1 && recent.length > 0 && (
