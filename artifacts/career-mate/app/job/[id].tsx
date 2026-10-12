@@ -160,7 +160,7 @@ function SourceNote({ url }: { url: string }) {
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ color: colors.warning, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 16, lineHeight: 22 }}>Read from {host}</Text>
         <Text style={{ color: colors.foreground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 16, lineHeight: 24 }}>
-          Seek doesn’t let apps read its ads, so we used this copy. Tap to check it’s the same job.
+          The site you linked doesn’t let apps read its ads, so we used this copy. Tap to check it’s the same job.
         </Text>
       </View>
       <Feather name="external-link" size={16} color={colors.warning} style={{ marginTop: 2 }} />

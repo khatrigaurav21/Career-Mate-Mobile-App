@@ -13,7 +13,7 @@ import { VISA_SUMMARY } from '@/components/WorkRights';
 import { useColors } from '@/hooks/useColors';
 import { useAuth } from '@/context/AuthContext';
 import { type } from '@/constants/typography';
-import { api, isFallbackToPaste, isSeekUrl } from '@/lib/api';
+import { api, blockedJobSite, isFallbackToPaste } from '@/lib/api';
 import type { JobSummary, WorkRights } from '@/lib/api';
 
 type SubmitMode = 'link' | 'paste' | 'file';
@@ -45,7 +45,10 @@ export default function SubmitJob() {
   const pipeline = useQuery({ queryKey: ['pipeline'], queryFn: api.getPipeline, enabled: !!session });
   const recent = (pipeline.data?.jobs ?? []).slice(0, 3);
   const workRights = (profile?.preferences?.work_rights as WorkRights | undefined) ?? null;
-  const seekLink = mode === 'link' && isSeekUrl(url);
+  // Seek or Indeed: they block automated reading, so we ask for the title and
+  // employer and look for the employer's own copy.
+  const blockedSite = mode === 'link' ? blockedJobSite(url) : null;
+  const seekLink = blockedSite !== null;
 
   // The Evaluate tab stays mounted, so apply every newly received share.
   useEffect(() => {
@@ -73,7 +76,7 @@ export default function SubmitJob() {
   const validationMessage = () => {
     if (mode === 'link' && !url.trim()) return 'Paste the job posting link first.';
     if (seekLink && (!seekTitle.trim() || !seekCompany.trim())) {
-      return 'Add the job title and employer from the Seek ad, or use Paste text instead.';
+      return `Add the job title and employer from the ${blockedSite} ad, or use Paste text instead.`;
     }
     if (mode === 'paste' && description.trim().length < 80) return 'Paste a little more of the job description so we can evaluate it.';
     if (mode === 'file' && !file) return 'Choose the job description file first.';
@@ -239,14 +242,14 @@ export default function SubmitJob() {
                   <Field placeholder="https://…" value={url} onChangeText={setUrl} keyboardType="url" autoCapitalize="none" autoCorrect={false} accessibilityLabel="Job post link" />
                   {seekLink ? (
                     <View style={{ gap: 12, marginTop: 4 }}>
-                      <GuidanceCard colors={colors} icon="search" text="Seek doesn’t let apps read its ads. Add the title and employer so we can look for the employer’s own copy." />
-                      <Text style={[type.bodySemibold, { color: colors.navy }]}>Job title from the Seek ad</Text>
-                      <Field placeholder="e.g. Fleet Coordinator" value={seekTitle} onChangeText={setSeekTitle} autoCapitalize="words" accessibilityLabel="Job title from the Seek ad" />
+                      <GuidanceCard colors={colors} icon="search" text={`${blockedSite} doesn’t let apps read its ads. Add the title and employer so we can look for the employer’s own copy.`} />
+                      <Text style={[type.bodySemibold, { color: colors.navy }]}>{`Job title from the ${blockedSite} ad`}</Text>
+                      <Field placeholder="e.g. Fleet Coordinator" value={seekTitle} onChangeText={setSeekTitle} autoCapitalize="words" accessibilityLabel={`Job title from the ${blockedSite} ad`} />
                       <Text style={[type.bodySemibold, { color: colors.navy }]}>Employer</Text>
-                      <Field placeholder="e.g. NT Health" value={seekCompany} onChangeText={setSeekCompany} autoCapitalize="words" accessibilityLabel="Employer from the Seek ad" />
+                      <Field placeholder="e.g. NT Health" value={seekCompany} onChangeText={setSeekCompany} autoCapitalize="words" accessibilityLabel={`Employer from the ${blockedSite} ad`} />
                     </View>
                   ) : (
-                    <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>Works with LinkedIn, company career sites and Seek.</Text>
+                    <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>Works with LinkedIn, company career sites, Seek and Indeed.</Text>
                   )}
                 </View>
               )}

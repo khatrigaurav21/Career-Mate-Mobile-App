@@ -356,15 +356,25 @@ export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError;
 }
 
-// Seek blocks automated reading; for its links the app asks for the job
-// title and employer so the server can find the employer's own copy.
-export function isSeekUrl(raw: string) {
+// Sites that block automated reading (mirrors the server's list in
+// botWalls.mjs). For their links the app asks for the job title and employer
+// so the server can find the employer's own copy instead.
+const BLOCKED_JOB_SITES: { name: 'Seek' | 'Indeed'; hosts: string[] }[] = [
+  { name: 'Seek', hosts: ['seek.com.au', 'seek.com', 'seek.co.nz'] },
+  { name: 'Indeed', hosts: ['indeed.com'] },
+];
+
+export function blockedJobSite(raw: string): 'Seek' | 'Indeed' | null {
   try {
     const host = new URL(raw.trim()).hostname.toLowerCase();
-    return ['seek.com.au', 'seek.com', 'seek.co.nz'].some((d) => host === d || host.endsWith(`.${d}`));
+    return BLOCKED_JOB_SITES.find((s) => s.hosts.some((d) => host === d || host.endsWith(`.${d}`)))?.name ?? null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+export function isSeekUrl(raw: string) {
+  return blockedJobSite(raw) === 'Seek';
 }
 
 export function isFallbackToPaste(error: unknown) {
