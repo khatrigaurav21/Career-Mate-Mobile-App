@@ -91,7 +91,7 @@ section name, initials avatar → Profile). Stack screens on top: Login
 - **Career insights** (`app/insights.tsx`, from the "Roles you might be missing" card at the foot of Home): summary across evaluated jobs, titles to search for (Same work / Step up / Nearby move, CV quote, gap note, search tip, copy button), skills that keep coming up ("In 2 of 5 jobs" — counted by the API), what employers keep valuing, Rebuild.
 - **Interview prep** (`app/prep/[id].tsx`): what they'll probe, the visa answer, a 60-second introduction, likely questions split Recruiter / Manager / The job (tap to expand the first-person answer, why they ask, and the CV line it uses; a fit chip says Strong example / Transferable / Prepare a story), questions to ask, stories to prepare, checklist, watch-outs, and Rebuild. Always says questions are predicted from the ad, not reported by past candidates.
 
-Rules from the redesign: the card body and its action button are siblings, never nested buttons; a job the user can't legally take never gets the coral "Tailor CV" call to action (it shows "Review").
+Rules from the redesign: the card body and its action button are siblings, never nested buttons; a job the user can't legally take never gets the terracotta "Tailor CV" call to action (it shows "Review").
 
 ## Key components (`components/`)
 
