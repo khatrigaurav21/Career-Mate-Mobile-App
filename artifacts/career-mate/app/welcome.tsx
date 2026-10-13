@@ -32,7 +32,7 @@ const SLIDES: Slide[] = [
     icon: 'shield',
     eyebrow: 'Work rights',
     title: 'Can you legally take it?',
-    body: 'Every job is checked against the work rights you set, including regional 491 and 494 visa conditions.',
+    body: 'Every job is checked against your right to work, including Australia’s regional 491 and 494 visa conditions.',
     points: ['Eligible, check, or not on your visa', 'The line in the ad it’s based on', 'Guidance only — confirm anything unusual with a registered migration agent'],
   },
   {

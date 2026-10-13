@@ -11,7 +11,7 @@ import { useColors } from '@/hooks/useColors';
 import { useDeleteJob } from '@/hooks/useDeleteJob';
 import { type } from '@/constants/typography';
 import { AppHeader } from '@/components/AppHeader';
-import { VISA_SUMMARY } from '@/components/WorkRights';
+import { visaSummary } from '@/components/WorkRights';
 import { STATUS_META, toneColors } from '@/components/ApplicationTracker';
 import { GettingStarted, gettingStartedSteps } from '@/components/GettingStarted';
 import { useOnboarding } from '@/lib/onboarding';
@@ -140,7 +140,7 @@ export default function Home() {
 }
 
 function VisaCard({ workRights, colors }: { workRights: WorkRights | null; colors: Colors }) {
-  const summary = workRights ? VISA_SUMMARY[workRights.status] : null;
+  const summary = workRights ? visaSummary(workRights) : null;
   return (
     <Pressable
       onPress={() => router.push('/profile')}

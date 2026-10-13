@@ -11,7 +11,7 @@ export type Profile = {
 };
 
 export type WorkRightsStatus = 'citizen_pr' | 'visa_491' | 'visa_494' | 'needs_sponsorship' | 'other';
-export type WorkRights = { status: WorkRightsStatus; note: string };
+export type WorkRights = { status: WorkRightsStatus; note: string; country?: string };
 export type WorkRightsVerdict = 'eligible' | 'check' | 'not_eligible' | 'unknown';
 export type WorkRightsResult = { verdict: WorkRightsVerdict; summary: string; evidence: string };
 

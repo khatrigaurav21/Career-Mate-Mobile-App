@@ -142,7 +142,7 @@ export default function Setup() {
       )}
       {!params.redo && (
         <View style={{ gap: 10 }}>
-          <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 17 }}>Your work rights in Australia</Text>
+          <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 17 }}>Your work rights</Text>
           <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20 }}>Optional, but it lets us flag jobs your visa doesn't allow. You can change it later in Profile.</Text>
           <WorkRightsPicker value={workRights} onChange={setWorkRights} />
         </View>
@@ -157,7 +157,7 @@ export default function Setup() {
           ]}
         />
       )}
-      {error && <ErrorNotice message={error} />}
+      {error ? <ErrorNotice message={error} /> : null}
       <Button onPress={submit} loading={loading} icon="arrow-right">{params.redo ? 'Save updated profile' : 'Build my profile'}</Button>
     </Screen>
   );

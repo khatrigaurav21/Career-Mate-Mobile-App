@@ -6,7 +6,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '@/context/AuthContext';
 import { Button, Screen, SectionEyebrow } from '@/components/ui';
 import { AppHeader, initialsFromEmail } from '@/components/AppHeader';
-import { VISA_SUMMARY, WorkRightsPicker } from '@/components/WorkRights';
+import { visaSummary, WorkRightsPicker } from '@/components/WorkRights';
 import { useColors } from '@/hooks/useColors';
 import { type } from '@/constants/typography';
 import { api } from '@/lib/api';
@@ -220,7 +220,7 @@ function ProfileMetric({ icon, label, value, colors }: { icon: keyof typeof Feat
 }
 
 function VisaPanel({ workRights, editing, onEdit, colors }: { workRights: WorkRights | null; editing: boolean; onEdit: () => void; colors: Colors }) {
-  const summary = workRights ? VISA_SUMMARY[workRights.status] : null;
+  const summary = workRights ? visaSummary(workRights) : null;
   return (
     <View style={{ backgroundColor: colors.inkPanel, borderRadius: 22, padding: 18, gap: 14 }}>
       <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>

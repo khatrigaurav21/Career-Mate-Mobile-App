@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, ErrorNotice, Field, LoadingNotice, SectionEyebrow } from '@/components/ui';
 import { AppHeader } from '@/components/AppHeader';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
-import { VISA_SUMMARY } from '@/components/WorkRights';
+import { visaSummary } from '@/components/WorkRights';
 import { useColors } from '@/hooks/useColors';
 import { useAuth } from '@/context/AuthContext';
 import { type } from '@/constants/typography';
@@ -419,7 +419,7 @@ function SummaryRow({ label, value, colors }: { label: string; value: string; co
 }
 
 function CoachNote({ workRights, colors }: { workRights: WorkRights | null; colors: Colors }) {
-  const visa = workRights ? VISA_SUMMARY[workRights.status].title : null;
+  const visa = workRights ? visaSummary(workRights).title : null;
   return (
     <View style={{ backgroundColor: colors.accent, borderRadius: 16, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
       <Feather name="compass" size={18} color={colors.accentForeground} style={{ marginTop: 2 }} />
