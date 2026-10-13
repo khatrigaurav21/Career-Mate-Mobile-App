@@ -112,7 +112,7 @@ export default function Login() {
               </Pressable>
             </>
           )}
-          {error && <ErrorNotice message={error} />}
+          {error ? <ErrorNotice message={error} /> : null}
         </View>
       </View>
       <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>
