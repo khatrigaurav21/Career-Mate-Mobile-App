@@ -170,10 +170,12 @@ export class ApiError extends Error {
     super(
       typeof data.detail === 'string'
         ? data.detail
-        : // The backend reports errors as { error }. Usage limits (429) and
-          // unreadable postings/files (422) are worded for users; other
-          // statuses can be developer-facing, so those stay generic.
-          (status === 429 || status === 422) && typeof data.error === 'string'
+        : // The backend reports errors as { error }. Usage limits (429),
+          // unreadable postings/files (422) and "AI busy, try again" (503
+          // marked retryable) are worded for users; other statuses can be
+          // developer-facing (Render's own 503 page included), so those stay
+          // generic.
+          (status === 429 || status === 422 || (status === 503 && data.retryable === true)) && typeof data.error === 'string'
           ? data.error
           : typeof data.message === 'string'
           ? data.message
