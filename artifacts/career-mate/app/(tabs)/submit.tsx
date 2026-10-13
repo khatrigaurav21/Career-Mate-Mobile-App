@@ -173,7 +173,7 @@ export default function SubmitJob() {
       <AppHeader section="Evaluate" />
       <KeyboardAwareScrollViewCompat
         style={{ flex: 1, backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: insets.bottom + 36, gap: 20 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: insets.bottom + 110, gap: 20 }}
         bottomOffset={80}
         showsVerticalScrollIndicator={false}
       >

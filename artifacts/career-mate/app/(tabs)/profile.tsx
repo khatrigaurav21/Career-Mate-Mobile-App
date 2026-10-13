@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { Button, Screen, SectionEyebrow } from '@/components/ui';
 import { AppHeader, initialsFromEmail } from '@/components/AppHeader';
@@ -28,7 +29,8 @@ function updatedLabel(iso?: string) {
 
 export default function Profile() {
   const colors = useColors();
-  const { profile, session, signOut, refreshProfile } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { profile, profileChecked, session, signOut, refreshProfile } = useAuth();
   const onboarding = useOnboarding();
   const savedWorkRights = (profile?.preferences?.work_rights as WorkRights | undefined) ?? null;
   const [editingRights, setEditingRights] = useState(false);
@@ -97,7 +99,7 @@ export default function Profile() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppHeader section="Profile" />
-      <Screen topInset={false}>
+      <Screen topInset={false} contentStyle={{ paddingBottom: insets.bottom + 110 }}>
         <View style={{ gap: 4 }}>
           <SectionEyebrow>Your profile</SectionEyebrow>
           <Text style={[type.headlineLg, { color: colors.navy }]}>Career profile</Text>
@@ -111,19 +113,21 @@ export default function Profile() {
             <View style={{ flex: 1, gap: 3 }}>
               <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Signed in as</Text>
               <Text numberOfLines={1} style={[type.bodySemibold, { color: colors.navy, flexShrink: 1 }]}>{session?.email}</Text>
-              <View style={{ flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: 5, backgroundColor: savedWorkRights ? colors.successSoft : colors.warningSoft, borderRadius: 99, paddingHorizontal: 9, paddingVertical: 4 }}>
-                <Feather name={savedWorkRights ? 'check-circle' : 'info'} size={13} color={savedWorkRights ? colors.success : colors.warning} />
-                <Text style={[type.labelPill, { color: savedWorkRights ? colors.success : colors.warning }]}>{savedWorkRights ? 'Work rights added' : 'Add your work rights'}</Text>
+              <View style={{ flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: 5, backgroundColor: !profileChecked ? colors.muted : savedWorkRights ? colors.successSoft : colors.warningSoft, borderRadius: 99, paddingHorizontal: 9, paddingVertical: 4 }}>
+                {profileChecked
+                  ? <Feather name={savedWorkRights ? 'check-circle' : 'info'} size={13} color={savedWorkRights ? colors.success : colors.warning} />
+                  : <ActivityIndicator size="small" color={colors.mutedForeground} />}
+                <Text style={[type.labelPill, { color: !profileChecked ? colors.mutedForeground : savedWorkRights ? colors.success : colors.warning }]}>{profileChecked ? savedWorkRights ? 'Work rights added' : 'Add your work rights' : 'Loading profile'}</Text>
               </View>
             </View>
           </View>
           <View style={{ flexDirection: 'row', gap: 9 }}>
-            <ProfileMetric icon="target" label="Target roles" value={String(profile?.target_roles?.length ?? 0)} colors={colors} />
-            <ProfileMetric icon="file-text" label="CV profile" value={profile?.cv_markdown ? 'Ready' : 'Add CV'} colors={colors} />
+            <ProfileMetric icon="target" label="Target roles" value={profileChecked ? String(profile?.target_roles?.length ?? 0) : 'Loading…'} colors={colors} />
+            <ProfileMetric icon="file-text" label="CV profile" value={profileChecked ? profile?.cv_markdown ? 'Ready' : 'Add CV' : 'Loading…'} colors={colors} />
           </View>
         </View>
 
-        <VisaPanel workRights={savedWorkRights} editing={editingRights} colors={colors} onEdit={() => { setDraftRights(savedWorkRights); setEditingRights(true); }} />
+        <VisaPanel workRights={savedWorkRights} loading={!profileChecked} editing={editingRights} colors={colors} onEdit={() => { setDraftRights(savedWorkRights); setEditingRights(true); }} />
         {editingRights && (
           <View style={{ gap: 10 }}>
             <WorkRightsPicker value={draftRights} onChange={setDraftRights} />
@@ -143,15 +147,22 @@ export default function Profile() {
               </View>
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={[type.titleCard, { color: colors.navy }]}>Your CV</Text>
-                <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{profile?.cv_markdown ? updatedLabel(profile.updated_at) ?? 'Used for every evaluation' : 'Not added yet'}</Text>
+                <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{profileChecked ? profile?.cv_markdown ? updatedLabel(profile.updated_at) ?? 'Used for every evaluation' : 'Not added yet' : 'Loading CV profile'}</Text>
               </View>
             </View>
-            {profile?.cv_markdown ? (
+            {!profileChecked ? (
+              <View accessibilityRole="progressbar" accessibilityLabel="Loading CV profile" style={{ minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <ActivityIndicator color={colors.primary} />
+                <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>Loading your CV profile…</Text>
+              </View>
+            ) : profile?.cv_markdown ? (
               <Text numberOfLines={3} style={[type.bodyMd, { color: colors.mutedForeground, flexShrink: 1 }]}>{profile.cv_markdown.replace(/[#*_>`-]/g, '').trim()}</Text>
             ) : (
               <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>No CV added yet. Add one to personalize job evaluations.</Text>
             )}
-            <Button onPress={() => router.push('/setup?redo=1')} variant="secondary" icon={profile?.cv_markdown ? 'refresh-cw' : 'file-text'}>{profile?.cv_markdown ? 'Update or replace CV' : 'Add a CV'}</Button>
+            {profileChecked && (
+              <Button onPress={() => router.push('/setup?redo=1')} variant="secondary" icon={profile?.cv_markdown ? 'refresh-cw' : 'file-text'}>{profile?.cv_markdown ? 'Update or replace CV' : 'Add a CV'}</Button>
+            )}
           </View>
         </View>
 
@@ -194,7 +205,7 @@ export default function Profile() {
             }}
             colors={colors}
           />
-          <LinkRow icon="shield" label="Privacy Policy" onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} colors={colors} />
+          <LinkRow icon="shield" label="Privacy policy" onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} colors={colors} />
           <LinkRow icon="log-out" label="Sign out" tone="primary" onPress={confirmSignOut} colors={colors} />
           <Button
             onPress={confirmDeleteAccount}
@@ -223,7 +234,7 @@ function ProfileMetric({ icon, label, value, colors }: { icon: keyof typeof Feat
   );
 }
 
-function VisaPanel({ workRights, editing, onEdit, colors }: { workRights: WorkRights | null; editing: boolean; onEdit: () => void; colors: Colors }) {
+function VisaPanel({ workRights, loading, editing, onEdit, colors }: { workRights: WorkRights | null; loading: boolean; editing: boolean; onEdit: () => void; colors: Colors }) {
   const summary = workRights ? visaSummary(workRights) : null;
   return (
     <View style={{ backgroundColor: colors.inkPanel, borderRadius: 22, padding: 18, gap: 14 }}>
@@ -231,10 +242,15 @@ function VisaPanel({ workRights, editing, onEdit, colors }: { workRights: WorkRi
         <Feather name="shield" size={20} color={colors.onNavy} style={{ marginTop: 2 }} />
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={[type.labelEyebrow, { color: colors.onNavyMuted }]}>Work rights</Text>
-          <Text style={[type.headlineSm, { color: colors.onNavy }]}>{summary ? summary.title : 'Not set yet'}</Text>
+          <Text style={[type.headlineSm, { color: colors.onNavy }]}>{loading ? 'Loading…' : summary ? summary.title : 'Not set yet'}</Text>
         </View>
       </View>
-      {summary ? (
+      {loading ? (
+        <View accessibilityRole="progressbar" accessibilityLabel="Loading work rights" style={{ minHeight: 80, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <ActivityIndicator color={colors.onNavy} />
+          <Text style={[type.bodyMd, { color: colors.onNavyMuted }]}>Checking your profile…</Text>
+        </View>
+      ) : summary ? (
         <>
           <PanelRow icon="map" label="Where you can work" value={summary.areas} colors={colors} />
           <PanelRow icon="briefcase" label="Who you can work for" value={summary.entitlement} colors={colors} />
@@ -243,7 +259,7 @@ function VisaPanel({ workRights, editing, onEdit, colors }: { workRights: WorkRi
       ) : (
         <Text style={[type.bodyMd, { color: colors.onNavyMuted }]}>Set your work rights so every job is checked against where you can legally work.</Text>
       )}
-      {!editing && (
+      {!loading && !editing && (
         <Pressable
           onPress={onEdit}
           accessibilityRole="button"
