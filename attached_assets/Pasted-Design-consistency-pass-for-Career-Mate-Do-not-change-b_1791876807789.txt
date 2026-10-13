@@ -1,0 +1,14 @@
+Design consistency pass for Career Mate. Do not change behaviour, API calls, or the protected files listed in DESIGN.md.
+
+1. Fonts: the app should use Plus Jakarta Sans only. Replace every 'Inter_400Regular', 'Inter_500Medium', 'Inter_600SemiBold', 'Inter_700Bold' with the matching 'PlusJakartaSans_*' weight. This is in components/ui.tsx (StyleSheet), app/job/[id].tsx, app/login.tsx, app/setup.tsx, components/ReportView.tsx, components/WorkRights.tsx. Then remove the Inter fonts from useFonts in app/_layout.tsx.
+2. Danger colour: in constants/colors.ts, make `destructive` clearly distinguishable from `primary` (#A83223 terracotta) in both light and dark palettes, e.g. a deeper, cooler red, and keep text contrast at 4.5:1 or better. Make the 'danger' Button variant an outlined style with its icon, so delete never looks like a primary action.
+3. The "Prepare before they call" panel uses inkPanel #0E1E23 and onNavyMuted #D4E5ED (cool navy). Change both to a deep warm tone from our palette (dark eucalyptus or warm charcoal), keeping 4.5:1 contrast.
+4. ScoreRing: add fontVariant: ['tabular-nums'] to styles.scoreNumber so the count-up doesn't wobble.
+5. app/+not-found.tsx: restyle to match the app (Plus Jakarta, our colours, Button component). Title "Page not found", text "We couldn't find that page.", button "Go to Home". No exclamation marks.
+6. app/login.tsx: "Privacy Policy" → "Privacy policy".
+7. Documents on the job screen (app/job/[id].tsx, DocumentAction): when a CV or cover letter exists, users don't realise they need to tap. Change it so the next step is obvious:
+   - Replace the "Ready" status chip with a small pill that looks pressable: a "download" Feather icon + the word "Download", primary colour (filled or outlined, your call), clearly a button rather than a status label.
+   - Change the description from "Ready to open" to "Your PDF is ready. Tap to download." (both the CV and the cover letter card).
+   - Add accessibilityRole="button" and accessibilityLabel "Download tailored CV" / "Download cover letter" to the card.
+   - Leave the "Create" state, the "Preparing PDF" state and what the tap does unchanged.
+Update DESIGN.md with the font and danger-colour rules. Push when done and I'll review.
