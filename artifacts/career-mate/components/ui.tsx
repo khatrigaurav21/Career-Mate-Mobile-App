@@ -266,15 +266,16 @@ export function Button({
       ? colors.primary
       : variant === 'secondary'
         ? colors.secondary
-        : variant === 'danger'
-          ? colors.destructive
-          : 'transparent';
+        : 'transparent';
   const foreground =
-    variant === 'primary' || variant === 'danger'
+    variant === 'primary'
       ? colors.primaryForeground
       : variant === 'secondary'
         ? colors.secondaryForeground
-        : colors.primary;
+        : variant === 'danger'
+          ? colors.destructive
+          : colors.primary;
+  const actionIcon = icon ?? (variant === 'danger' ? 'trash-2' : undefined);
   return (
     <Pressable
       testID={testID}
@@ -284,6 +285,8 @@ export function Button({
         styles.button,
         {
           backgroundColor: background,
+          borderWidth: variant === 'danger' ? 1 : 0,
+          borderColor: variant === 'danger' ? colors.destructive : 'transparent',
           opacity: pressed || disabled ? 0.72 : 1,
           shadowColor: colors.navy,
           shadowOpacity: variant === 'primary' && !disabled ? 0.12 : 0,
@@ -299,7 +302,7 @@ export function Button({
         <MotionIndicator color={foreground} />
       ) : (
         <>
-          {icon && <Feather name={icon} size={17} color={foreground} />}
+          {actionIcon && <Feather name={actionIcon} size={17} color={foreground} />}
           <Text style={[styles.buttonText, { color: foreground }]}>{children}</Text>
         </>
       )}
@@ -685,54 +688,54 @@ export const styles = StyleSheet.create({
   screenContent: { paddingHorizontal: 20, gap: 20 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   brandMark: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  brandName: { fontSize: 23, fontFamily: 'Inter_700Bold', letterSpacing: -0.8 },
+  brandName: { fontSize: 23, fontFamily: 'PlusJakartaSans_700Bold', letterSpacing: -0.8 },
   button: { minHeight: 52, borderRadius: 18, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
   ghostButton: { paddingHorizontal: 6, minHeight: 40 },
-  buttonText: { fontFamily: 'Inter_600SemiBold', fontSize: 16 },
+  buttonText: { fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 16 },
   iconButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   fieldGroup: { gap: 8 },
-  fieldLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 14, letterSpacing: 0.1 },
-  input: { minHeight: 54, borderWidth: 1, borderRadius: 18, paddingHorizontal: 16, paddingVertical: 14, fontFamily: 'Inter_400Regular', fontSize: 16 },
+  fieldLabel: { fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14, letterSpacing: 0.1 },
+  input: { minHeight: 54, borderWidth: 1, borderRadius: 18, paddingHorizontal: 16, paddingVertical: 14, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 16 },
   multilineInput: { minHeight: 145, textAlignVertical: 'top', lineHeight: 24 },
-  helper: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
-  eyebrow: { fontFamily: 'Inter_700Bold', fontSize: 12, lineHeight: 16, letterSpacing: 0.8, textTransform: 'uppercase' },
+  helper: { fontFamily: 'PlusJakartaSans_400Regular', fontSize: 12, lineHeight: 18 },
+  eyebrow: { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 12, lineHeight: 16, letterSpacing: 0.8, textTransform: 'uppercase' },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   pageHeaderCopy: { flex: 1, gap: 4, paddingTop: 2 },
-  pageTitle: { fontFamily: 'Inter_700Bold', fontSize: 28, lineHeight: 34, letterSpacing: -0.7 },
-  pageSubtitle: { fontFamily: 'Inter_400Regular', fontSize: 16, lineHeight: 24, marginTop: 2 },
+  pageTitle: { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 28, lineHeight: 34, letterSpacing: -0.7 },
+  pageSubtitle: { fontFamily: 'PlusJakartaSans_400Regular', fontSize: 16, lineHeight: 24, marginTop: 2 },
   choiceTile: { flex: 1, minHeight: 124, borderRadius: 18, borderWidth: 1, padding: 12, justifyContent: 'space-between', gap: 7 },
   choiceIcon: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  choiceLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 14, lineHeight: 18 },
-  choiceCaption: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 16 },
+  choiceLabel: { fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14, lineHeight: 18 },
+  choiceCaption: { fontFamily: 'PlusJakartaSans_400Regular', fontSize: 12, lineHeight: 16 },
   statusChip: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 },
-  statusChipText: { fontFamily: 'Inter_600SemiBold', fontSize: 12, lineHeight: 16, letterSpacing: 0.2 },
+  statusChipText: { fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 12, lineHeight: 16, letterSpacing: 0.2 },
   loadingState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 90, gap: 14 },
   loadingOrb: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' },
-  loadingTitle: { fontFamily: 'Inter_700Bold', fontSize: 21, textAlign: 'center' },
-  loadingDetail: { fontFamily: 'Inter_400Regular', fontSize: 14, textAlign: 'center', lineHeight: 21, maxWidth: 300 },
+  loadingTitle: { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 21, textAlign: 'center' },
+  loadingDetail: { fontFamily: 'PlusJakartaSans_400Regular', fontSize: 14, textAlign: 'center', lineHeight: 21, maxWidth: 300 },
   loadingNotice: { borderRadius: 16, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
   loadingNoticeCopy: { flex: 1, gap: 5 },
-  loadingNoticeTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
-  loadingNoticeDetail: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20 },
+  loadingNoticeTitle: { fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 },
+  loadingNoticeDetail: { fontFamily: 'PlusJakartaSans_400Regular', fontSize: 14, lineHeight: 20 },
   progressGroup: { marginTop: 5, gap: 7 },
   progressTrackRow: { flexDirection: 'row', gap: 5 },
   progressSegment: { flex: 1, height: 6, borderRadius: 99, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 99 },
   progressLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  progressLabel: { flex: 1, fontFamily: 'Inter_600SemiBold', fontSize: 12, lineHeight: 16 },
-  progressMeta: { fontFamily: 'Inter_500Medium', fontSize: 12, lineHeight: 16 },
+  progressLabel: { flex: 1, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 12, lineHeight: 16 },
+  progressMeta: { fontFamily: 'PlusJakartaSans_500Medium', fontSize: 12, lineHeight: 16 },
   animatedSection: { overflow: 'hidden' },
   errorBox: { borderWidth: 1, borderRadius: 15, padding: 14, flexDirection: 'row', gap: 10 },
-  errorText: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20 },
-  retryText: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  errorText: { fontFamily: 'PlusJakartaSans_400Regular', fontSize: 14, lineHeight: 20 },
+  retryText: { fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 },
   scoreRing: { borderWidth: 6, alignItems: 'center', justifyContent: 'center' },
-  scoreNumber: { fontFamily: 'Inter_700Bold' },
-  scoreOutOf: { fontFamily: 'Inter_500Medium', fontSize: 12, marginTop: -2 },
+  scoreNumber: { fontFamily: 'PlusJakartaSans_700Bold', fontVariant: ['tabular-nums'] },
+  scoreOutOf: { fontFamily: 'PlusJakartaSans_500Medium', fontSize: 12, marginTop: -2 },
   otpRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 7 },
   otpCell: { flex: 1, maxWidth: 44, height: 56, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  otpInput: { alignSelf: 'stretch', height: 53, textAlign: 'center', fontFamily: 'Inter_700Bold', fontSize: 21, padding: 0 },
+  otpInput: { alignSelf: 'stretch', height: 53, textAlign: 'center', fontFamily: 'PlusJakartaSans_700Bold', fontSize: 21, padding: 0 },
   warningBox: { borderWidth: 1, borderRadius: 15, padding: 14, gap: 8 },
   warningHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  warningTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
-  warningText: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20, paddingLeft: 24 },
+  warningTitle: { fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 },
+  warningText: { fontFamily: 'PlusJakartaSans_400Regular', fontSize: 14, lineHeight: 20, paddingLeft: 24 },
 });

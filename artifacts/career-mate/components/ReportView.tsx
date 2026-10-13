@@ -18,7 +18,7 @@ type Block =
   | { kind: 'callout'; label: string; text: string }
   | { kind: 'table'; headers: string[]; rows: string[][] };
 
-const BODY = { fontFamily: 'Inter_400Regular', fontSize: 16, lineHeight: 24 } as const;
+const BODY = { fontFamily: 'PlusJakartaSans_400Regular', fontSize: 16, lineHeight: 24 } as const;
 
 // "Role Summary — archetype: ..." repeats the section title; drop that lead-in.
 function stripLeadTitle(text: string) {
@@ -111,7 +111,7 @@ function Inline({ text, colors, style }: { text: string; colors: Colors; style?:
     <Text style={[BODY, { color: colors.foreground }, style]}>
       {parts.map((p, idx) =>
         p.startsWith('**') ? (
-          <Text key={idx} style={{ fontFamily: 'Inter_600SemiBold', color: colors.navy }}>{p.slice(2, -2)}</Text>
+          <Text key={idx} style={{ fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.navy }}>{p.slice(2, -2)}</Text>
         ) : (
           p.replace(/(^|\s)[*_](\S)/g, '$1$2')
         ),
@@ -137,14 +137,14 @@ function Chip({ label, tone, colors }: { label: string; tone: Tone; colors: Colo
   }[tone];
   return (
     <View style={{ backgroundColor: palette[0], borderRadius: 8, paddingHorizontal: 9, paddingVertical: 3 }}>
-      <Text style={{ color: palette[1], fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>{label}</Text>
+      <Text style={{ color: palette[1], fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 13 }}>{label}</Text>
     </View>
   );
 }
 
 function Label({ children, colors }: { children: React.ReactNode; colors: Colors }) {
   return (
-    <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_600SemiBold', fontSize: 12, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 3 }}>
+    <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 12, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 3 }}>
       {children}
     </Text>
   );
@@ -171,7 +171,7 @@ function TableCards({ headers, rows, colors }: { headers: string[]; rows: string
   return (
     <View style={{ gap: 10 }}>
       {counts && (
-        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_500Medium', fontSize: 14 }}>
+        <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_500Medium', fontSize: 14 }}>
           {Object.entries(counts).map(([k, n]) => `${n} ${k.toLowerCase()}`).join('  ·  ')}
         </Text>
       )}
@@ -180,7 +180,7 @@ function TableCards({ headers, rows, colors }: { headers: string[]; rows: string
         const evidenceLabel = matchTone === 'bad' || matchTone === 'mid' ? 'Gap' : 'Your evidence';
         return (
           <View key={r} style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 14, gap: 10 }}>
-            <Inline text={cells[0] || ''} colors={colors} style={{ fontFamily: 'Inter_600SemiBold', color: colors.navy, fontSize: 16, lineHeight: 22 }} />
+            <Inline text={cells[0] || ''} colors={colors} style={{ fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.navy, fontSize: 16, lineHeight: 22 }} />
             {chipIdx.length > 0 && (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                 {chipIdx.map((idx) => cells[idx] ? (
@@ -217,7 +217,7 @@ export function ReportView({ text }: { text: string }) {
           case 'paragraph':
             return <Inline key={b} text={block.text} colors={colors} />;
           case 'heading':
-            return <Text key={b} style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 17, marginTop: 6 }}>{block.text}</Text>;
+            return <Text key={b} style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 17, marginTop: 6 }}>{block.text}</Text>;
           case 'callout':
             return (
               <View key={b} style={{ backgroundColor: colors.accent, borderRadius: 14, padding: 14 }}>
@@ -242,7 +242,7 @@ export function ReportView({ text }: { text: string }) {
                 {block.items.map((item, idx) => (
                   <View key={idx} style={{ flexDirection: 'row', gap: 10 }}>
                     <View style={{ width: 24, height: 24, borderRadius: 8, backgroundColor: block.ordered ? colors.accent : 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
-                      <Text style={{ color: colors.accentForeground, fontFamily: 'Inter_700Bold', fontSize: block.ordered ? 13 : 18 }}>{block.ordered ? idx + 1 : '•'}</Text>
+                      <Text style={{ color: colors.accentForeground, fontFamily: 'PlusJakartaSans_700Bold', fontSize: block.ordered ? 13 : 18 }}>{block.ordered ? idx + 1 : '•'}</Text>
                     </View>
                     <View style={{ flex: 1 }}><Inline text={item} colors={colors} /></View>
                   </View>

@@ -113,14 +113,14 @@ export default function Setup() {
       </View>
       {mode === 'upload' && (
         <View style={[stylesCard(colors), { gap: 15 }]}>
-          <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 17 }}>Start with your existing CV</Text>
-          <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 20 }}>
+          <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 17 }}>Start with your existing CV</Text>
+          <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 13, lineHeight: 20 }}>
             PDF, DOCX, or plain text. Maximum file size is 5MB.
           </Text>
           <Button onPress={pickFile} variant="secondary" icon="paperclip">
             {file ? 'Choose a different file' : 'Choose CV file'}
           </Button>
-          {file && <Text style={{ color: colors.teal, fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>{file.name}</Text>}
+          {file && <Text style={{ color: colors.teal, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 13 }}>{file.name}</Text>}
         </View>
       )}
       {mode === 'paste' && (
@@ -142,8 +142,8 @@ export default function Setup() {
       )}
       {!params.redo && (
         <View style={{ gap: 10 }}>
-          <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 17 }}>Your work rights</Text>
-          <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20 }}>Optional, but it lets us flag jobs your visa doesn't allow. You can change it later in Profile.</Text>
+          <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 17 }}>Your work rights</Text>
+          <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 14, lineHeight: 20 }}>Optional, but it lets us flag jobs your visa doesn't allow. You can change it later in Profile.</Text>
           <WorkRightsPicker value={workRights} onChange={setWorkRights} />
         </View>
       )}

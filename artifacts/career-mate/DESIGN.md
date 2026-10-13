@@ -33,12 +33,12 @@ and supportive states.
 | `secondary` / `secondaryForeground` | `#2C694E` / `#FFFFFF` | `#7FD1A8` / `#17221C` | Eucalyptus secondary actions |
 | `accent` / `accentForeground` | `#AEEECB` / `#316E52` | `#1E3A2E` / `#B7F3CD` | Supportive callouts (TL;DR, "shared post loaded") |
 | `teal` / `success` | `#2C694E` | `#7FD1A8` | Positive accents, strong match, eligible, finished |
-| `inkPanel` / `onNavy` | `#0E1E23` / `#FFFFFF` | `#11251D` / `#F4EFE8` | Dark feature panels and work-rights panels |
-| `onNavyMuted` | `#D4E5ED` | `#D4E5DB` | Secondary text on dark panels |
+| `inkPanel` / `onNavy` | `#1C2D24` / `#FFFFFF` | `#11251D` / `#F4EFE8` | Warm dark feature panels and work-rights panels |
+| `onNavyMuted` | `#DCE8DE` | `#D4E5DB` | Secondary text on dark panels |
 | `border` / `input` | `#E5E2DD` / `#8C716C` | `#3A3632` / `#86766D` | Card edges and input outlines |
 | `success` / `successSoft` | `#2C694E` / `#AEEECB` | `#7FD1A8` / `#1E3A2E` | Strong match, eligible, finished |
 | `warning` / `warningSoft` | `#946326` / `#FFEDDB` | `#F0BD70` / `#46351F` | Partial match and "check" states |
-| `destructive` / `destructiveSoft` | `#BA1A1A` / `#FFDAD6` | `#FF9F94` / `#4B2928` | Missing, not eligible, delete |
+| `destructive` / `destructiveSoft` | `#8B2635` / `#FFE1E2` | `#FF8188` / `#4B292F` | Missing, not eligible, delete |
 
 Text/background combinations used for actions, body text, and status treatments
 meet WCAG AA's 4.5:1 contrast minimum in both modes.
@@ -47,6 +47,7 @@ Rules:
 - Status always pairs colour with an icon and a word (never colour alone).
 - Soft background + strong foreground for chips/pills/banners (`successSoft` + `success`, etc.).
 - Terracotta (`primary`) is reserved for the main action on a screen and links.
+- Destructive actions use a distinct cooler red and an outlined danger button, never the filled terracotta primary style.
 
 ## Typography
 

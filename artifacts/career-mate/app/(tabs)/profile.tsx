@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
@@ -196,11 +196,15 @@ export default function Profile() {
           />
           <LinkRow icon="shield" label="Privacy Policy" onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} colors={colors} />
           <LinkRow icon="log-out" label="Sign out" tone="primary" onPress={confirmSignOut} colors={colors} />
-          <Pressable onPress={confirmDeleteAccount} disabled={deleting} accessibilityRole="button" style={{ minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
-            {deleting
-              ? <ActivityIndicator color={colors.mutedForeground} />
-              : <Text style={[type.bodyMd, { color: colors.mutedForeground, textDecorationLine: 'underline' }]}>Delete account</Text>}
-          </Pressable>
+          <Button
+            onPress={confirmDeleteAccount}
+            variant="danger"
+            icon="trash-2"
+            loading={deleting}
+            style={{ minHeight: 44 }}
+          >
+            Delete account
+          </Button>
         </View>
       </Screen>
     </View>

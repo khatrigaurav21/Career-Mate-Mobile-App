@@ -134,7 +134,7 @@ export function WorkRightsPicker({
 
   return (
     <View style={{ gap: 8 }}>
-      <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Where are you looking for work?</Text>
+      <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 }}>Where are you looking for work?</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }} accessibilityRole="radiogroup">
         {[...COUNTRIES, OTHER].map((name) => {
           const selected = pick === name;
@@ -153,7 +153,7 @@ export function WorkRightsPicker({
                 backgroundColor: colors.card,
               }}
             >
-              <Text style={{ color: selected ? colors.primary : colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>{name}</Text>
+              <Text style={{ color: selected ? colors.primary : colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 }}>{name}</Text>
             </Pressable>
           );
         })}
@@ -171,7 +171,7 @@ export function WorkRightsPicker({
           }}
         />
       )}
-      <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14, marginTop: 8 }}>Your right to work there</Text>
+      <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14, marginTop: 8 }}>Your right to work there</Text>
       <View style={{ gap: 8 }} accessibilityRole="radiogroup">
         {options.map((option) => {
           const selected = status === option.status;
@@ -194,8 +194,8 @@ export function WorkRightsPicker({
             >
               <Feather name={selected ? 'check-circle' : 'circle'} size={20} color={selected ? colors.primary : colors.mutedForeground} />
               <View style={{ flex: 1, gap: 2 }}>
-                <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 15 }}>{option.label}</Text>
-                <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 18 }}>{option.caption}</Text>
+                <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 15 }}>{option.label}</Text>
+                <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 13, lineHeight: 18 }}>{option.caption}</Text>
               </View>
             </Pressable>
           );
@@ -238,18 +238,18 @@ export function WorkRightsBanner({ workRights }: { workRights: { verdict: WorkRi
     <View style={{ backgroundColor: bg, borderRadius: 18, padding: 16, gap: 8 }} accessibilityRole="summary">
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
         <Feather name={style.icon} size={20} color={fg} />
-        <Text style={{ color: fg, fontFamily: 'Inter_700Bold', fontSize: 16, flex: 1 }}>{style.title}</Text>
+        <Text style={{ color: fg, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, flex: 1 }}>{style.title}</Text>
       </View>
-      <Text style={{ color: colors.foreground, fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22 }}>{workRights.summary}</Text>
+      <Text style={{ color: colors.foreground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 15, lineHeight: 22 }}>{workRights.summary}</Text>
       {workRights.evidence && workRights.evidence !== 'Not stated' && (
-        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, fontStyle: 'italic' }}>“{workRights.evidence.replace(/^"|"$/g, '')}”</Text>
+        <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 13, lineHeight: 19, fontStyle: 'italic' }}>“{workRights.evidence.replace(/^"|"$/g, '')}”</Text>
       )}
       {workRights.verdict === 'unknown' ? (
         <Pressable onPress={() => router.push('/profile')} accessibilityRole="link">
-          <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Set your work rights in Profile →</Text>
+          <Text style={{ color: colors.primary, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 }}>Set your work rights in Profile →</Text>
         </Pressable>
       ) : (
-        <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17 }}>
+        <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 12, lineHeight: 17 }}>
           Guidance only, not legal advice. Confirm anything unusual with a registered migration agent.
         </Text>
       )}

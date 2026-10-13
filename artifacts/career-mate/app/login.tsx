@@ -70,8 +70,8 @@ export default function Login() {
       <View style={{ flex: 1, justifyContent: 'center', gap: 22, maxWidth: 480, width: '100%', alignSelf: 'center' }}>
         <View style={{ gap: 10 }}>
           <SectionEyebrow>Your next move</SectionEyebrow>
-          <Text style={{ color: colors.navy, fontFamily: 'Inter_700Bold', fontSize: 34, letterSpacing: -1.2, lineHeight: 40 }}>Make your next move count</Text>
-          <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 23 }}>Check your fit and build a focused application.</Text>
+          <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 34, letterSpacing: -1.2, lineHeight: 40 }}>Make your next move count</Text>
+          <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 15, lineHeight: 23 }}>Check your fit and build a focused application.</Text>
         </View>
         <View style={{ gap: 15 }}>
           {step === 'email' ? (
@@ -88,16 +88,16 @@ export default function Login() {
                 onSubmitEditing={requestCode}
               />
               <Button onPress={requestCode} loading={loading} icon="arrow-right" testID="send-code">Email me a code</Button>
-              <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>No password. We’ll email you a one-time code.</Text>
+              <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>No password. We’ll email you a one-time code.</Text>
             </>
           ) : (
             <>
               <View style={{ gap: 5 }}>
-                <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 14 }}>Check your inbox</Text>
-                <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19 }}>Enter the code we sent to {email}</Text>
+                <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 }}>Check your inbox</Text>
+                <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 13, lineHeight: 19 }}>Enter the code we sent to {email}</Text>
               </View>
               <View style={{ gap: 9 }}>
-                <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>One-time code</Text>
+                <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 13 }}>One-time code</Text>
                 <OtpInput
                   value={code}
                   onChange={(value) => { setCode(value); setOtpStatus('idle'); }}
@@ -108,16 +108,16 @@ export default function Login() {
               </View>
               <Button onPress={() => void verifyCode()} loading={loading} icon="check" testID="verify-code">Continue</Button>
               <Pressable onPress={() => { setStep('email'); setCode(''); setOtpStatus('idle'); setError(''); }}>
-                <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold', fontSize: 13, textAlign: 'center' }}>Use a different email</Text>
+                <Text style={{ color: colors.primary, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 13, textAlign: 'center' }}>Use a different email</Text>
               </Pressable>
             </>
           )}
           {error ? <ErrorNotice message={error} /> : null}
         </View>
       </View>
-      <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>
+      <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>
         By continuing, you agree to use Career Mate for your own career materials. See our{' '}
-        <Text onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} style={{ color: colors.primary, textDecorationLine: 'underline' }} accessibilityRole="link">Privacy Policy</Text>
+        <Text onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} style={{ color: colors.primary, textDecorationLine: 'underline' }} accessibilityRole="link">Privacy policy</Text>
       </Text>
     </KeyboardAwareScrollViewCompat>
   );

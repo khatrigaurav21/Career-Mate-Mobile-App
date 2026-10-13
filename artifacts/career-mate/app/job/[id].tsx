@@ -83,7 +83,8 @@ export default function JobDetail() {
         <DetailSectionTitle icon="file-text" title="Documents" />
         <DocumentAction
           title="Tailored CV"
-          description={cvUrl ? 'Ready to open' : 'Create a tailored version'}
+          accessibilityLabel="Download tailored CV"
+          description={cvUrl ? 'Your PDF is ready. Tap to download.' : 'Create a tailored version'}
           icon="file-text"
           url={cvUrl}
           loading={cvMutation.isPending}
@@ -97,7 +98,8 @@ export default function JobDetail() {
         {cvMutation.data && <WarningList warnings={cvMutation.data.warnings} />}
         <DocumentAction
           title="Cover letter"
-          description={coverUrl ? 'Ready to open' : 'Create a first draft'}
+          accessibilityLabel="Download cover letter"
+          description={coverUrl ? 'Your PDF is ready. Tap to download.' : 'Create a first draft'}
           icon="edit-3"
           url={coverUrl}
           loading={coverMutation.isPending}
@@ -120,9 +122,9 @@ export default function JobDetail() {
               <Pressable onPress={() => setOpenSection(open ? '' : key)} style={{ minHeight: 57, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}>
                   <View style={{ width: 27, height: 27, borderRadius: 9, backgroundColor: open ? colors.primary : colors.accent, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: open ? colors.primaryForeground : colors.accentForeground, fontFamily: 'Inter_700Bold', fontSize: 12 }}>{key}</Text>
+                    <Text style={{ color: open ? colors.primaryForeground : colors.accentForeground, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 12 }}>{key}</Text>
                   </View>
-                  <Text style={{ color: colors.navy, fontFamily: 'Inter_600SemiBold', fontSize: 16 }}>{reportLabels[key] ?? `Section ${key}`}</Text>
+                  <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 16 }}>{reportLabels[key] ?? `Section ${key}`}</Text>
                 </View>
                 <Feather name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.mutedForeground} />
               </Pressable>
@@ -181,6 +183,7 @@ function DetailSectionTitle({ icon, title }: { icon: keyof typeof Feather.glyphM
 function DocumentAction({
   title,
   description,
+  accessibilityLabel,
   icon,
   url,
   loading,
@@ -189,6 +192,7 @@ function DocumentAction({
 }: {
   title: string;
   description: string;
+  accessibilityLabel: string;
   icon: keyof typeof Feather.glyphMap;
   url: string | null;
   loading: boolean;
@@ -197,7 +201,12 @@ function DocumentAction({
 }) {
   const colors = useColors();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.72 : 1 })}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={url ? accessibilityLabel : title}
+      style={({ pressed }) => ({ borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.72 : 1 })}
+    >
       <View style={{ width: 41, height: 41, borderRadius: 13, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}><Feather name={icon} size={19} color={colors.teal} /></View>
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, lineHeight: 22 }}>{title}</Text>
@@ -209,8 +218,13 @@ function DocumentAction({
           <MotionIndicator color={colors.primary} />
           <StatusChip tone="warning">Preparing PDF</StatusChip>
         </View>
+      ) : url ? (
+        <View style={{ minHeight: 36, paddingHorizontal: 10, borderRadius: 99, borderWidth: 1, borderColor: colors.primary, flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+          <Feather name="download" size={14} color={colors.primary} />
+          <Text style={{ color: colors.primary, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 12 }}>Download</Text>
+        </View>
       ) : (
-        <StatusChip tone={url ? 'success' : 'neutral'}>{url ? 'Ready' : 'Create'}</StatusChip>
+        <StatusChip tone="neutral">Create</StatusChip>
       )}
     </Pressable>
   );
