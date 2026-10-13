@@ -12,12 +12,19 @@ type AuthContextValue = {
   profile: Profile | null;
   profileChecked: boolean;
   hydrated: boolean;
+  // The saved session is kept but the profile couldn't be loaded (no signal,
+  // server waking up). Retries run in the background; retryProfile tries now.
+  profileUnreachable: boolean;
+  retryProfile: () => void;
   signIn: (session: Session) => Promise<void>;
   refreshProfile: () => Promise<Profile | null>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+const FIRST_RETRY_MS = 3000;
+const MAX_RETRY_MS = 30000;
 
 async function readSession() {
   return Platform.OS === 'web'
@@ -56,6 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileChecked, setProfileChecked] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [profileUnreachable, setProfileUnreachable] = useState(false);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryDelay = useRef(FIRST_RETRY_MS);
   const queryClient = useQueryClient();
   // The session the refresher renews. A ref, not state, because the API
   // client calls the refresher outside React's render cycle.
@@ -70,7 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await writeSession(JSON.stringify(next));
   };
 
+  const stopRetrying = () => {
+    if (retryTimer.current) clearTimeout(retryTimer.current);
+    retryTimer.current = null;
+    retryDelay.current = FIRST_RETRY_MS;
+  };
+
   const signOut = async () => {
+    stopRetrying();
+    setProfileUnreachable(false);
     applySessionToken(null);
     sessionRef.current = null;
     setSession(null);
@@ -96,6 +114,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       throw error;
     }
+  };
+
+  // Loads the profile for a restored session. Only the server saying the
+  // session is over signs anyone out (the API client does that on a 401);
+  // anything else — offline, timeout, server waking up — keeps the session
+  // and tries again, backing off to every 30s.
+  const loadProfileOrRetry = async (token?: string) => {
+    try {
+      await refreshProfile(token);
+      stopRetrying();
+      setProfileUnreachable(false);
+    } catch (error) {
+      if (isApiError(error) && error.status === 401) {
+        await signOut();
+        return;
+      }
+      if (!sessionRef.current) return;
+      setProfileUnreachable(true);
+      const delay = retryDelay.current;
+      retryDelay.current = Math.min(delay * 2, MAX_RETRY_MS);
+      retryTimer.current = setTimeout(() => void loadProfileOrRetry(), delay);
+    }
+  };
+
+  const retryProfile = () => {
+    stopRetrying();
+    void loadProfileOrRetry();
   };
 
   const signIn = async (nextSession: Session) => {
@@ -150,9 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sessionRef.current = restored;
         setSession(restored);
         try {
-          await refreshProfile(restored.access_token);
-        } catch {
-          await signOut();
+          await loadProfileOrRetry(restored.access_token);
         } finally {
           if (active) setHydrated(true);
         }
@@ -166,14 +209,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  useEffect(() => stopRetrying, []);
+
   // Lets Sentry group errors by (anonymous) user, never by email.
   useEffect(() => {
     setErrorReportingUser(session?.user_id ?? null);
   }, [session?.user_id]);
 
   const value = useMemo(
-    () => ({ session, profile, profileChecked, hydrated, signIn, refreshProfile, signOut }),
-    [hydrated, profile, profileChecked, session],
+    () => ({ session, profile, profileChecked, hydrated, profileUnreachable, retryProfile, signIn, refreshProfile, signOut }),
+    [hydrated, profile, profileChecked, profileUnreachable, session],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
