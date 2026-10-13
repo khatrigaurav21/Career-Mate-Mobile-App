@@ -58,7 +58,7 @@ const SLIDES: Slide[] = [
         ? 'Share a job link from LinkedIn or a company site straight to Career Mate, or paste it into Evaluate.'
         : 'Copy a job link from LinkedIn or a company site and paste it into Evaluate.',
     points: [
-      'Seek links: add the job title and employer and we’ll find the employer’s own copy — or paste the ad’s text',
+      'Seek and Indeed links: the ad opens in Career Mate. When you can see it, tap Use this ad',
       'Got the ad as a file? Upload a PDF or Word document',
     ],
   },

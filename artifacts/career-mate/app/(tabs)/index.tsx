@@ -353,7 +353,7 @@ function FindRoleCard({ colors }: { colors: Colors }) {
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={[type.titleCard, { color: colors.onNavy }]}>Found a role you like?</Text>
           <Text style={[type.bodyMd, { color: colors.onNavyMuted }]}>
-            Add a LinkedIn, company or Seek job link. For Seek, add the job title and employer and we’ll find the employer’s own copy.
+            Add a job link from LinkedIn, Seek, Indeed or a company site. Seek and Indeed ads open right here in the app.
           </Text>
         </View>
       </View>
