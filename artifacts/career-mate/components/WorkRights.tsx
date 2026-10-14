@@ -230,7 +230,14 @@ function toneColors(colors: ReturnType<typeof useColors>, tone: 'good' | 'mid' |
   }[tone];
 }
 
-export function WorkRightsBanner({ workRights }: { workRights: { verdict: WorkRightsVerdict; summary: string; evidence: string } }) {
+/** `action` replaces the "Set your work rights in Profile" link on an unknown verdict (the job screen checks right there). */
+export function WorkRightsBanner({
+  workRights,
+  action,
+}: {
+  workRights: { verdict: WorkRightsVerdict; summary: string; evidence: string };
+  action?: React.ReactNode;
+}) {
   const colors = useColors();
   const style = VERDICT_STYLE[workRights.verdict] ?? VERDICT_STYLE.unknown;
   const { bg, fg } = toneColors(colors, style.tone);
@@ -244,7 +251,9 @@ export function WorkRightsBanner({ workRights }: { workRights: { verdict: WorkRi
       {workRights.evidence && workRights.evidence !== 'Not stated' && (
         <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 13, lineHeight: 19, fontStyle: 'italic' }}>“{workRights.evidence.replace(/^"|"$/g, '')}”</Text>
       )}
-      {workRights.verdict === 'unknown' ? (
+      {workRights.verdict === 'unknown' && action ? (
+        action
+      ) : workRights.verdict === 'unknown' ? (
         <Pressable onPress={() => router.push('/profile')} accessibilityRole="link">
           <Text style={{ color: colors.primary, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 }}>Set your work rights in Profile →</Text>
         </Pressable>

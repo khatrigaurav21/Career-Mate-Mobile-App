@@ -11,7 +11,8 @@ import { useDeleteJob } from '@/hooks/useDeleteJob';
 import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, SegmentedProgress, StatusChip, WarningList } from '@/components/ui';
 import type { ProgressStep } from '@/components/ui';
 import { ReportView } from '@/components/ReportView';
-import { WorkRightsBanner } from '@/components/WorkRights';
+import { WorkRightsCheck } from '@/components/WorkRightsCheck';
+import { AppliedPrompt } from '@/components/AppliedPrompt';
 import { ApplicationTracker } from '@/components/ApplicationTracker';
 import { InterviewPrepCard } from '@/components/InterviewPrep';
 import { type } from '@/constants/typography';
@@ -24,6 +25,8 @@ export default function JobDetail() {
   const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [openSection, setOpenSection] = useState('');
+  // Set when a downloaded CV or letter is opened: the moment to ask "Did you apply?".
+  const [askApplied, setAskApplied] = useState(false);
   // Opened straight from a link, this screen can mount before the saved
   // session is restored; a request then would go out without a token, get a
   // 401 and sign the user out. Wait for the session, and send signed-out
@@ -41,6 +44,10 @@ export default function JobDetail() {
   const data = job.data;
   const cvUrl = cvMutation.data?.pdf_url ?? getDocumentUrl(data, 'cv');
   const coverUrl = coverMutation.data?.pdf_url ?? getDocumentUrl(data, 'cover');
+  const openDocument = (url: string) => {
+    void Linking.openURL(url);
+    if (data.status === 'evaluated') setAskApplied(true);
+  };
   const reportEntries = Object.entries(data.report ?? {}).filter(([, value]) => typeof value === 'string');
 
   return (
@@ -69,7 +76,7 @@ export default function JobDetail() {
         <Text style={[type.headlineLg, { color: colors.navy }]}>{data.title || 'Untitled role'}</Text>
       </View>
       {data.content_url ? <SourceNote url={data.content_url} /> : null}
-      {data.work_rights && <WorkRightsBanner workRights={data.work_rights} />}
+      <WorkRightsCheck job={data} />
       <View style={{ borderRadius: 22, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 17, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
         <ScoreRing score={data.score} size={92} mutedColor={colors.mutedForeground} />
         <View style={{ flex: 1, gap: 6 }}>
@@ -93,7 +100,7 @@ export default function JobDetail() {
             { label: 'Writing the draft', estimatedMs: 35000 },
             { label: 'Formatting the PDF', estimatedMs: 30000 },
           ]}
-          onPress={() => cvUrl ? void Linking.openURL(cvUrl) : cvMutation.mutate()}
+          onPress={() => cvUrl ? openDocument(cvUrl) : cvMutation.mutate()}
         />
         {cvMutation.data && <WarningList warnings={cvMutation.data.warnings} />}
         <DocumentAction
@@ -108,10 +115,11 @@ export default function JobDetail() {
             { label: 'Writing the draft', estimatedMs: 40000 },
             { label: 'Formatting the PDF', estimatedMs: 30000 },
           ]}
-          onPress={() => coverUrl ? void Linking.openURL(coverUrl) : coverMutation.mutate()}
+          onPress={() => coverUrl ? openDocument(coverUrl) : coverMutation.mutate()}
         />
         {coverMutation.data && <WarningList warnings={coverMutation.data.warnings} />}
         {(cvMutation.isError || coverMutation.isError) && <ErrorNotice message={documentErrorMessage(cvMutation.error ?? coverMutation.error)} />}
+        {askApplied && data.status === 'evaluated' ? <AppliedPrompt jobId={data.job_id} onDone={() => setAskApplied(false)} /> : null}
       </View>
       <View style={{ gap: 12 }}>
         <DetailSectionTitle icon="target" title="Evaluation details" />

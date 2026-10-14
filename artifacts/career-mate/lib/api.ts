@@ -334,6 +334,9 @@ export const api = {
   deleteAccount: () => request<{ deleted: boolean }>('/account', { method: 'DELETE' }),
   deleteJob: (id: string) =>
     request<{ deleted: boolean }>(`/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  /** Works out only the visa verdict again for a job, from the work rights now saved. */
+  recheckWorkRights: (id: string) =>
+    request<{ work_rights: WorkRightsResult; score: number }>(`/jobs/${encodeURIComponent(id)}/work-rights-check`, { method: 'POST', body: {} }),
   setJobStatus: (id: string, status: ApplicationStatus) =>
     request<TrackingState & { job_id: string }>(`/jobs/${encodeURIComponent(id)}/status`, { method: 'PATCH', body: { status } }),
   logFollowUp: (id: string) =>
