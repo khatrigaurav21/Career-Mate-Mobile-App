@@ -18,8 +18,8 @@ export function TroziMark({ size = 42 }: { size?: number }) {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <Circle cx={169} cy={65} r={8.4} fill="#FCF9F4" />
-        <Circle cx={202.6} cy={65} r={8.4} fill="#FCF9F4" />
+        <Circle cx={167} cy={65} r={13} fill="#FCF9F4" />
+        <Circle cx={206} cy={65} r={13} fill="#FCF9F4" />
       </G>
     </Svg>
   );
