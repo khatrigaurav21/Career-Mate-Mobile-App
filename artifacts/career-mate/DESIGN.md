@@ -1,5 +1,11 @@
 # Trozi — Design
 
+**Name (since 14 Oct 2026):** Trozi, from the Italian *trovare*, "to find"
+(previously Career Mate). Tagline: "Find your next chapter". Wordmark:
+lowercase `trozi`, one colour, next to the terracotta arrow mark. Internal
+IDs stay `career-mate` / `com.khatrigaurav.careermate`: never rename the
+slug, scheme, bundle identifier or package.
+
 How the Trozi mobile app looks and behaves, written from the code as of
 2026-10-13 (updated for the Terracotta & Eucalyptus redesign).
 If this file and the code disagree, the code wins — update this file.
