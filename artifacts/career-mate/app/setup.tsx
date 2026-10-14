@@ -51,11 +51,10 @@ export default function Setup() {
       } else if (mode === 'paste') {
         await api.pasteProfile(cvText.trim());
       } else {
-        // target_roles lands in a Postgres text[] column and preferences
-        // must be nested exactly like this — the backend reads
-        // answers.target_roles (array) and answers.preferences (object);
-        // anything else is either a type-mismatch insert error or silently
-        // dropped.
+        // preferences must be nested exactly like this — the backend reads
+        // answers.preferences (object); anything else is silently dropped.
+        // Target roles are no longer asked for (only career insights used
+        // them); leaving the field out keeps anything saved before.
         const splitList = (value: string) =>
           value
             .split(',')
@@ -72,7 +71,6 @@ export default function Setup() {
           education: form.education ?? '',
           skills: form.skills ?? '',
           proof_points: form.proof_points ?? '',
-          target_roles: splitList(form.target_roles ?? ''),
           preferences: {
             location: form.location_preferences ?? '',
             salary_floor: form.salary_preferences ? Number(form.salary_preferences) : undefined,
@@ -135,7 +133,6 @@ export default function Setup() {
           <Field label="Education" placeholder="Degree, institution, year" value={form.education ?? ''} onChangeText={(value) => update('education', value)} />
           <Field label="Skills" placeholder="Tools, methods, strengths" value={form.skills ?? ''} onChangeText={(value) => update('skills', value)} multiline />
           <Field label="Proof points" placeholder="Outcomes, metrics, wins, recognition" value={form.proof_points ?? ''} onChangeText={(value) => update('proof_points', value)} multiline />
-          <Field label="Target roles" placeholder="Senior product designer, design lead" value={form.target_roles ?? ''} onChangeText={(value) => update('target_roles', value)} />
           <Field label="Location and salary preferences" placeholder="Remote, Darwin; $120k+" value={form.location_preferences ?? ''} onChangeText={(value) => update('location_preferences', value)} />
           <Field label="Anything to avoid?" placeholder="Industries, travel, or work patterns" value={form.avoid_preferences ?? ''} onChangeText={(value) => update('avoid_preferences', value)} />
         </View>

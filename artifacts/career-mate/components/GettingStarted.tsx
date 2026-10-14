@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import type { Href } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import type { CareerInsights, JobSummary, WorkRights } from '@/lib/api';
+import type { JobSummary, WorkRights } from '@/lib/api';
 import { useColors } from '@/hooks/useColors';
 import { type } from '@/constants/typography';
 import { Button } from '@/components/ui';
@@ -17,7 +17,7 @@ function bestJob(jobs: JobSummary[]) {
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
 }
 
-export function gettingStartedSteps({ jobs, workRights, insights }: { jobs: JobSummary[]; workRights: WorkRights | null; insights: CareerInsights | null }): Step[] {
+export function gettingStartedSteps({ jobs, workRights }: { jobs: JobSummary[]; workRights: WorkRights | null }): Step[] {
   const best = bestJob(jobs);
   const jobHref = (best ? `/job/${best.job_id}` : '/(tabs)/submit') as Href;
   return [
@@ -49,13 +49,6 @@ export function gettingStartedSteps({ jobs, workRights, insights }: { jobs: JobS
       detail: 'Trozi will remind you to follow up.',
       done: jobs.some((j) => j.status !== 'evaluated'),
       action: { label: 'Open the job', href: jobHref },
-    },
-    {
-      key: 'insights',
-      title: 'See roles you might be missing',
-      detail: 'Titles to search for and skills that keep coming up.',
-      done: !!insights,
-      action: { label: 'See insights', href: '/insights' },
     },
   ];
 }
