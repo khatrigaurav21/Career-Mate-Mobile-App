@@ -7,14 +7,14 @@ import { WebView } from 'react-native-webview';
 import type { WebViewMessageEvent } from 'react-native-webview';
 import { Feather } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
-import { api, blockedJobSite } from '@/lib/api';
+import { api, readerSiteName } from '@/lib/api';
 import { CAPTURE_SCRIPT, checkCapturedAd } from '@/lib/adCapture';
 import { useColors } from '@/hooks/useColors';
 import { type } from '@/constants/typography';
 import { Button, ErrorNotice, IconButton, LoadingNotice } from '@/components/ui';
 
 /**
- * Opens a Seek or Indeed ad in an in-app browser so the user can see it and
+ * Opens a Seek, Indeed or LinkedIn ad in an in-app browser so the user can see it and
  * tap "Use this ad". The page loads on their phone, as it would in any
  * browser; the app then reads the ad's text and evaluates it. See
  * lib/adCapture.ts for why, and for the page selectors.
@@ -29,7 +29,13 @@ export default function ReadAd() {
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const site = url ? blockedJobSite(url) ?? 'the job site' : 'the job site';
+  const siteName = url ? readerSiteName(url) : null;
+  const site = siteName ?? 'the job site';
+  // LinkedIn covers the ad with a sign-in box for people who aren't signed
+  // in; the ad is still there underneath, so say they can just close it.
+  const tip = siteName === 'LinkedIn'
+    ? 'When you can see the job ad, tap Use this ad. If LinkedIn asks you to sign in, close that box with ×. You don’t need to sign in.'
+    : `When you can see the job ad, tap Use this ad. If ${site} asks you to confirm you’re a person, do that first.`;
 
   if (hydrated && !session) return <Redirect href="/" />;
   const safeUrl = url && /^https?:\/\//i.test(url) ? url : null;
@@ -74,7 +80,7 @@ export default function ReadAd() {
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         {header}
         <View style={{ padding: 20, gap: 12 }}>
-          <ErrorNotice message={!safeUrl ? 'That link can’t be opened.' : 'Reading an ad from Seek or Indeed works in the phone app. Here, copy the job description and use Paste text.'} />
+          <ErrorNotice message={!safeUrl ? 'That link can’t be opened.' : `Reading an ad from ${site} works in the phone app. Here, copy the job description and use Paste text.`} />
           <Button variant="secondary" onPress={() => router.back()} icon="arrow-left">Back</Button>
         </View>
       </View>
@@ -110,7 +116,7 @@ export default function ReadAd() {
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <Feather name="info" size={16} color={colors.mutedForeground} style={{ marginTop: 3 }} />
               <Text style={[type.bodyMd, { color: colors.mutedForeground, flex: 1 }]}>
-                {`When you can see the job ad, tap Use this ad. If ${site} asks you to confirm you’re a person, do that first.`}
+                {tip}
               </Text>
             </View>
             {error ? <ErrorNotice message={error} /> : null}

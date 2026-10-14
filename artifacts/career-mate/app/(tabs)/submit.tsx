@@ -13,7 +13,7 @@ import { visaSummary } from '@/components/WorkRights';
 import { useColors } from '@/hooks/useColors';
 import { useAuth } from '@/context/AuthContext';
 import { type } from '@/constants/typography';
-import { api, blockedJobSite, isFallbackToPaste } from '@/lib/api';
+import { api, blockedJobSite, isFallbackToPaste, isReadOnPhone } from '@/lib/api';
 import type { JobSummary, WorkRights } from '@/lib/api';
 
 type SubmitMode = 'link' | 'paste' | 'file';
@@ -154,6 +154,12 @@ export default function SubmitJob() {
       resetForm();
       router.push(`/job/${result.job_id}`);
     } catch (submitError) {
+      // Checked before the paste fallback: the server sends both, and a phone
+      // can read the ad where our server can't.
+      if (mode === 'link' && isReadOnPhone(submitError)) {
+        router.push({ pathname: '/read-ad', params: { url: url.trim() } });
+        return;
+      }
       if (isFallbackToPaste(submitError)) {
         setMode('paste');
         setStep(2);

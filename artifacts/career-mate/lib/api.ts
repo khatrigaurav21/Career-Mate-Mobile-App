@@ -391,6 +391,23 @@ export function isFallbackToPaste(error: unknown) {
   return isApiError(error) && error.status === 422 && error.data.fallback === 'paste_text';
 }
 
+/** The server couldn't read the ad but a phone can (LinkedIn rate-limits our server): open it in app/read-ad.tsx. */
+export function isReadOnPhone(error: unknown) {
+  return isApiError(error) && error.status === 422 && error.data.read_on_phone === true;
+}
+
+/** The site's name for the in-app reader: Seek and Indeed always open there, LinkedIn when the server is refused. */
+export function readerSiteName(raw: string): 'Seek' | 'Indeed' | 'LinkedIn' | null {
+  const blocked = blockedJobSite(raw);
+  if (blocked) return blocked;
+  try {
+    const host = new URL(raw.trim()).hostname.toLowerCase();
+    return host === 'linkedin.com' || host.endsWith('.linkedin.com') ? 'LinkedIn' : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getDocumentUrl(detail: JobDetail, kind: 'cv' | 'cover') {
   // GET /jobs/:id returns exactly these two top-level keys — pdf_url for
   // the CV, cover_letter_url for the cover letter. No nesting, no
