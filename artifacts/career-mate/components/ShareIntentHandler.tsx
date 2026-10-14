@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 const URL_IN_TEXT = /https?:\/\/[^\s"'<>]+/i;
 
 /**
- * "Share → Career Mate" from Seek, LinkedIn, a browser, etc. opens the
+ * "Share → Trozi" from Seek, LinkedIn, a browser, etc. opens the
  * submit screen pre-filled with the shared link (or the shared text when
  * there's no link). The share is held until the user is signed in and has
  * a profile, so sharing from a signed-out app still lands after login.

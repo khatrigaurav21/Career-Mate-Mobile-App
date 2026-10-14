@@ -46,7 +46,7 @@ export function gettingStartedSteps({ jobs, workRights, insights }: { jobs: JobS
     {
       key: 'applied',
       title: 'Mark a job as applied',
-      detail: 'Career Mate will remind you to follow up.',
+      detail: 'Trozi will remind you to follow up.',
       done: jobs.some((j) => j.status !== 'evaluated'),
       action: { label: 'Open the job', href: jobHref },
     },

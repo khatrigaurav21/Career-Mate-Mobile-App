@@ -23,9 +23,9 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     icon: 'compass',
-    eyebrow: 'Welcome to Career Mate',
+    eyebrow: 'Welcome to Trozi',
     title: 'Know if a job is worth your time',
-    body: 'Give Career Mate a job ad and it scores how well you fit, using your CV — in about a minute.',
+    body: 'Give Trozi a job ad and it scores how well you fit, using your CV — in about a minute.',
     points: ['A fit score out of 5', 'Where you match and where you fall short', 'What to change before you apply'],
   },
   {
@@ -46,7 +46,7 @@ const SLIDES: Slide[] = [
     icon: 'flag',
     eyebrow: 'Track',
     title: 'From applied to offer',
-    body: 'Mark where you are with each job. Career Mate keeps track and helps at each step.',
+    body: 'Mark where you are with each job. Trozi keeps track and helps at each step.',
     points: ['A nudge to follow up, with an email drafted for you', 'Interview prep with answers from your CV', 'Job titles you’re not searching for yet'],
   },
   {
@@ -55,10 +55,10 @@ const SLIDES: Slide[] = [
     title: 'Bring jobs in your way',
     body:
       Platform.OS === 'android'
-        ? 'Share a job link from LinkedIn or a company site straight to Career Mate, or paste it into Evaluate.'
+        ? 'Share a job link from LinkedIn or a company site straight to Trozi, or paste it into Evaluate.'
         : 'Copy a job link from LinkedIn or a company site and paste it into Evaluate.',
     points: [
-      'Seek and Indeed links: the ad opens in Career Mate. When you can see it, tap Use this ad',
+      'Seek and Indeed links: the ad opens in Trozi. When you can see it, tap Use this ad',
       'Got the ad as a file? Upload a PDF or Word document',
     ],
   },

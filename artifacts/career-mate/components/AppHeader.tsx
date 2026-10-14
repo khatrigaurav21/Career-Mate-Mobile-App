@@ -16,7 +16,7 @@ export function initialsFromEmail(email?: string | null) {
 }
 
 /**
- * Top bar shared by the three tabs: brand mark, "Career Mate" with the
+ * Top bar shared by the three tabs: brand mark, "Trozi" with the
  * current section, and an initials avatar that opens Profile.
  */
 export function AppHeader({ section }: { section: string }) {
@@ -41,7 +41,7 @@ export function AppHeader({ section }: { section: string }) {
         <Feather name="arrow-up-right" size={20} color={colors.primaryForeground} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={[type.titleCard, { color: colors.navy }]}>Career Mate</Text>
+        <Text style={[type.titleCard, { color: colors.navy }]}>Trozi</Text>
         <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{section}</Text>
       </View>
       <Pressable

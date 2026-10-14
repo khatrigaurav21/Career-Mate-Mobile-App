@@ -104,7 +104,7 @@ export default function Setup() {
       <PageHeader
         eyebrow={params.redo ? 'Keep it current' : 'First things first'}
         title="Bring your best work"
-        subtitle="Choose the way that feels easiest. Each path creates the same Career Mate profile."
+        subtitle="Choose the way that feels easiest. Each path creates the same Trozi profile."
       />
       <View style={{ flexDirection: 'row', gap: 9 }}>
         <ChoiceTile icon="upload" label="Upload a file" caption="Use the CV you already have" selected={mode === 'upload'} onPress={() => { setMode('upload'); setError(''); }} />

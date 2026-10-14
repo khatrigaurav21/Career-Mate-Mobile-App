@@ -70,7 +70,7 @@ export default function Login() {
       <View style={{ flex: 1, justifyContent: 'center', gap: 22, maxWidth: 480, width: '100%', alignSelf: 'center' }}>
         <View style={{ gap: 10 }}>
           <SectionEyebrow>Your next move</SectionEyebrow>
-          <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 34, letterSpacing: -1.2, lineHeight: 40 }}>Make your next move count</Text>
+          <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 34, letterSpacing: -1.2, lineHeight: 40 }}>Find your next chapter</Text>
           <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 15, lineHeight: 23 }}>Check your fit and build a focused application.</Text>
         </View>
         <View style={{ gap: 15 }}>
@@ -116,7 +116,7 @@ export default function Login() {
         </View>
       </View>
       <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>
-        By continuing, you agree to use Career Mate for your own career materials. See our{' '}
+        By continuing, you agree to use Trozi for your own career materials. See our{' '}
         <Text onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} style={{ color: colors.primary, textDecorationLine: 'underline' }} accessibilityRole="link">Privacy policy</Text>
       </Text>
     </KeyboardAwareScrollViewCompat>

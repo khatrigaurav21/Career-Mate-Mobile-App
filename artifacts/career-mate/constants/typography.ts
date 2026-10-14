@@ -1,7 +1,7 @@
 import type { TextStyle } from 'react-native';
 
 /**
- * Type scale aligned with the Terracotta & Eucalyptus Career Mate direction.
+ * Type scale aligned with the Terracotta & Eucalyptus Trozi direction.
  * Body and card titles are at least 16pt; labels stay at least 12pt.
  */
 export const type = {

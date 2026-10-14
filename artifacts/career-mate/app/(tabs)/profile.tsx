@@ -191,7 +191,7 @@ export default function Profile() {
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={[type.bodySemibold, { color: colors.warning }]}>Visa checks are guidance only</Text>
             <Text style={[type.bodyMd, { color: colors.foreground }]}>
-              Career Mate compares each job ad’s location and wording with the work rights you’ve set. It doesn’t verify your visa. Confirm anything unusual with a registered migration agent.
+              Trozi compares each job ad’s location and wording with the work rights you’ve set. It doesn’t verify your visa. Confirm anything unusual with a registered migration agent.
             </Text>
           </View>
         </View>

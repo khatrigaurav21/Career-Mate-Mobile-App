@@ -234,7 +234,7 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
       </View>
       {!compact && (
         <Text style={[styles.brandName, { color: colors.navy }]}>
-          career<Text style={{ color: colors.primary }}>mate</Text>
+          trozi
         </Text>
       )}
     </View>
@@ -673,7 +673,7 @@ export function WarningList({ warnings }: { warnings: string[] }) {
     <View style={[styles.warningBox, { backgroundColor: colors.card, borderColor: colors.amber }]}>
       <View style={styles.warningHeading}>
         <Feather name="info" size={16} color={colors.amber} />
-        <Text style={[styles.warningTitle, { color: colors.foreground }]}>A note from Career Mate</Text>
+        <Text style={[styles.warningTitle, { color: colors.foreground }]}>A note from Trozi</Text>
       </View>
       {warnings.map((warning, index) => (
         <Text key={`${warning}-${index}`} style={[styles.warningText, { color: colors.mutedForeground }]}>

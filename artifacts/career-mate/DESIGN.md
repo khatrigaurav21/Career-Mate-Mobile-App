@@ -1,6 +1,6 @@
-# Career Mate — Design
+# Trozi — Design
 
-How the Career Mate mobile app looks and behaves, written from the code as of
+How the Trozi mobile app looks and behaves, written from the code as of
 2026-10-13 (updated for the Terracotta & Eucalyptus redesign).
 If this file and the code disagree, the code wins — update this file.
 Colours live in `constants/colors.ts`, the type scale in
@@ -9,7 +9,7 @@ components in `components/ui.tsx`.
 
 ## Product and tone
 
-Career Mate helps job seekers in Australia (many on regional 491/494 visas)
+Trozi helps job seekers in Australia (many on regional 491/494 visas)
 decide whether a role is worth applying for, then tailors a CV and cover
 letter. The UI should feel calm, warm and trustworthy — a capable career
 coach, not a dashboard. Plain English, short labels, no jargon.
@@ -78,7 +78,7 @@ explicitly flagged tiny text as a problem — don't go below these.
 ## Navigation
 
 Three persistent tabs (native tabs): **Home** (pipeline), **Evaluate** (add a
-job), **Profile**, each topped by `AppHeader` (brand mark, "Career Mate" +
+job), **Profile**, each topped by `AppHeader` (brand mark, "Trozi" +
 section name, initials avatar → Profile). Stack screens on top: Login
 (one-time code), Setup (upload / paste / guided Q&A), Job detail.
 

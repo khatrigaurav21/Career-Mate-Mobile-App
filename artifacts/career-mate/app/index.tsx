@@ -36,7 +36,7 @@ export default function Index() {
           // Still signed in: no signal or the server is waking up. Retries
           // keep running in the background.
           <>
-            <LoadingState title="Can’t reach Career Mate" detail="Check your connection. You’re still signed in, and we’ll keep trying." />
+            <LoadingState title="Can’t reach Trozi" detail="Check your connection. You’re still signed in, and we’ll keep trying." />
             <Button variant="secondary" icon="refresh-cw" onPress={retryProfile}>Try again now</Button>
           </>
         ) : (
