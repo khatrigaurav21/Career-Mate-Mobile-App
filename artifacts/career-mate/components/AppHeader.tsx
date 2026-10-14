@@ -1,11 +1,11 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { useColors } from '@/hooks/useColors';
 import { type } from '@/constants/typography';
+import { TroziMark } from '@/components/TroziMark';
 
 /** "jane.smith@x.com" -> "JS"; "alex@x.com" -> "AL". */
 export function initialsFromEmail(email?: string | null) {
@@ -37,9 +37,7 @@ export function AppHeader({ section }: { section: string }) {
         borderBottomColor: colors.border,
       }}
     >
-      <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-        <Feather name="arrow-up-right" size={20} color={colors.primaryForeground} />
-      </View>
+      <TroziMark size={40} />
       <View style={{ flex: 1 }}>
         <Text style={[type.titleCard, { color: colors.navy }]}>Trozi</Text>
         <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{section}</Text>

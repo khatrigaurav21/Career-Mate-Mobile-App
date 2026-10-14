@@ -8,8 +8,8 @@
     "scheme": "career-mate",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "backgroundColor": "#F7F2EB",
-      "image": "./assets/images/icon.png",
+      "backgroundColor": "#FCF9F4",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain"
     },
     "ios": {
@@ -20,7 +20,12 @@
       }
     },
     "android": {
-      "package": "com.khatrigaurav.careermate"
+      "package": "com.khatrigaurav.careermate",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "monochromeImage": "./assets/images/adaptive-icon-mono.png",
+        "backgroundColor": "#A83223"
+      }
     },
     "web": {
       "favicon": "./assets/images/icon.png"

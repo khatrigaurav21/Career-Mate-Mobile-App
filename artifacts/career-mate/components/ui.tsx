@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { MotiView } from 'moti';
+import { TroziMark } from '@/components/TroziMark';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -229,9 +230,7 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
   const colors = useColors();
   return (
     <View style={styles.brandRow}>
-      <View style={[styles.brandMark, { backgroundColor: colors.primary }]}>
-        <Feather name="arrow-up-right" size={compact ? 18 : 23} color={colors.primaryForeground} />
-      </View>
+      <TroziMark size={42} />
       {!compact && (
         <Text style={[styles.brandName, { color: colors.navy }]}>
           trozi
@@ -687,7 +686,6 @@ export function WarningList({ warnings }: { warnings: string[] }) {
 export const styles = StyleSheet.create({
   screenContent: { paddingHorizontal: 20, gap: 20 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  brandMark: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   brandName: { fontSize: 23, fontFamily: 'PlusJakartaSans_700Bold', letterSpacing: -0.8 },
   button: { minHeight: 52, borderRadius: 18, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
   ghostButton: { paddingHorizontal: 6, minHeight: 40 },
