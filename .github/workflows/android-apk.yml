@@ -1,0 +1,82 @@
+# Builds the Trozi Android APK on GitHub's runner instead of Expo's servers,
+# so a used-up Expo build quota never blocks a release. Same EAS build, run
+# in "local" mode: it fetches the app's signing key from Expo with
+# EXPO_TOKEN, so the APK installs over earlier builds.
+#
+# Run it: GitHub → Actions → "Android APK" → Run workflow. The APK is attached
+# to the run under Artifacts.
+#
+# Needs one repository secret: EXPO_TOKEN (expo.dev → Account settings →
+# Access tokens). Forks never receive it, and only people with write access
+# can start the workflow.
+name: Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS build profile from eas.json
+        default: preview
+        type: choice
+        options: [preview]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      # The runner image ships far more than an Android build needs; a React
+      # Native release build can run out of disk without this.
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL || true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Exact versions from the lockfile; .npmrc's minimum-release-age rule
+      # still applies.
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build APK
+        working-directory: artifacts/career-mate
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Add the EXPO_TOKEN repository secret first (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          npx --yes eas-cli@24.8.0 build \
+            --platform android \
+            --profile "${{ inputs.profile }}" \
+            --local \
+            --non-interactive \
+            --output "$GITHUB_WORKSPACE/trozi-${{ github.run_number }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trozi-android-${{ github.run_number }}
+          path: trozi-${{ github.run_number }}.apk
+          retention-days: 30
+          if-no-files-found: error
