@@ -14,6 +14,20 @@ export type WorkRightsStatus = 'citizen_pr' | 'visa_491' | 'visa_494' | 'needs_s
 export type WorkRights = { status: WorkRightsStatus; note: string; country?: string };
 export type WorkRightsVerdict = 'eligible' | 'check' | 'not_eligible' | 'unknown';
 export type WorkRightsResult = { verdict: WorkRightsVerdict; summary: string; evidence: string };
+/** A drafted answer to one application question (form question, screening question or selection criterion). */
+export type ApplicationAnswer = {
+  id: string;
+  question: string;
+  answer: string;
+  note: string;
+  /** The change requests made so far, oldest first. */
+  changes: string[];
+  word_count: number;
+  created_at: string;
+  updated_at: string;
+  /** Sentences that claim more than the CV says; only on a fresh draft or revision. */
+  warnings?: string[];
+};
 
 // Where the user is with a job. 'evaluated' = assessed, not applied yet.
 export type ApplicationStatus = 'evaluated' | 'applied' | 'interviewing' | 'offer' | 'rejected' | 'withdrawn';
@@ -334,6 +348,14 @@ export const api = {
   deleteAccount: () => request<{ deleted: boolean }>('/account', { method: 'DELETE' }),
   deleteJob: (id: string) =>
     request<{ deleted: boolean }>(`/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  getAnswers: (id: string) =>
+    request<{ answers: ApplicationAnswer[] }>(`/jobs/${encodeURIComponent(id)}/answers`),
+  draftAnswer: (id: string, question: string) =>
+    request<{ answer: ApplicationAnswer }>(`/jobs/${encodeURIComponent(id)}/answers`, { method: 'POST', body: { question } }),
+  reviseAnswer: (id: string, answerId: string, instruction: string) =>
+    request<{ answer: ApplicationAnswer }>(`/jobs/${encodeURIComponent(id)}/answers/${encodeURIComponent(answerId)}/revise`, { method: 'POST', body: { instruction } }),
+  deleteAnswer: (id: string, answerId: string) =>
+    request<{ deleted: boolean }>(`/jobs/${encodeURIComponent(id)}/answers/${encodeURIComponent(answerId)}`, { method: 'DELETE' }),
   /** Works out only the visa verdict again for a job, from the work rights now saved. */
   recheckWorkRights: (id: string) =>
     request<{ work_rights: WorkRightsResult; score: number }>(`/jobs/${encodeURIComponent(id)}/work-rights-check`, { method: 'POST', body: {} }),

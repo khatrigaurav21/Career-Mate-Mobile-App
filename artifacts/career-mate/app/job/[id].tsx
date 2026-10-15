@@ -13,6 +13,7 @@ import type { ProgressStep } from '@/components/ui';
 import { ReportView } from '@/components/ReportView';
 import { WorkRightsCheck } from '@/components/WorkRightsCheck';
 import { AppliedPrompt } from '@/components/AppliedPrompt';
+import { ApplicationAnswers } from '@/components/ApplicationAnswers';
 import { ApplicationTracker } from '@/components/ApplicationTracker';
 import { InterviewPrepCard } from '@/components/InterviewPrep';
 import { type } from '@/constants/typography';
@@ -121,6 +122,7 @@ export default function JobDetail() {
         {(cvMutation.isError || coverMutation.isError) && <ErrorNotice message={documentErrorMessage(cvMutation.error ?? coverMutation.error)} />}
         {askApplied && data.status === 'evaluated' ? <AppliedPrompt jobId={data.job_id} onDone={() => setAskApplied(false)} /> : null}
       </View>
+      <ApplicationAnswers jobId={data.job_id} />
       <View style={{ gap: 12 }}>
         <DetailSectionTitle icon="target" title="Evaluation details" />
         {reportEntries.map(([key, value]) => {
