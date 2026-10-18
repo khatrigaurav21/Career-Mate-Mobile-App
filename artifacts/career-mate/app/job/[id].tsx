@@ -8,7 +8,9 @@ import { api, getDocumentUrl, isApiError } from '@/lib/api';
 import { reportLabels } from '@/lib/config';
 import { useColors } from '@/hooks/useColors';
 import { useDeleteJob } from '@/hooks/useDeleteJob';
-import { AnimatedSection, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, SegmentedProgress, StatusChip, WarningList } from '@/components/ui';
+import { AnimatedSection, Button, ErrorNotice, IconButton, LoadingState, MotionIndicator, ScoreRing, Screen, SegmentedProgress, StatusChip, WarningList } from '@/components/ui';
+import { ToneChooser } from '@/components/ToneChooser';
+import type { LetterTone } from '@/lib/api';
 import type { ProgressStep } from '@/components/ui';
 import { ReportView } from '@/components/ReportView';
 import { WorkRightsCheck } from '@/components/WorkRightsCheck';
@@ -35,7 +37,8 @@ export default function JobDetail() {
   const { session, hydrated } = useAuth();
   const job = useQuery({ queryKey: ['job', id], queryFn: () => api.getJob(id), enabled: !!id && !!session });
   const cvMutation = useMutation({ mutationFn: () => api.generateCv(id) });
-  const coverMutation = useMutation({ mutationFn: () => api.generateCoverLetter(id) });
+  const [tone, setTone] = useState<LetterTone>('professional');
+  const coverMutation = useMutation({ mutationFn: () => api.generateCoverLetter(id, tone) });
   const { confirmDelete, isDeleting } = useDeleteJob();
 
   if (hydrated && !session) return <Redirect href="/" />;
@@ -104,6 +107,7 @@ export default function JobDetail() {
           onPress={() => cvUrl ? openDocument(cvUrl) : cvMutation.mutate()}
         />
         {cvMutation.data && <WarningList warnings={cvMutation.data.warnings} />}
+        {cvUrl ? <Button variant="secondary" icon="edit-2" onPress={() => router.push(`/cv/${id}`)}>Review and edit your CV</Button> : null}
         <DocumentAction
           title="Cover letter"
           accessibilityLabel="Download cover letter"
@@ -119,6 +123,10 @@ export default function JobDetail() {
           onPress={() => coverUrl ? openDocument(coverUrl) : coverMutation.mutate()}
         />
         {coverMutation.data && <WarningList warnings={coverMutation.data.warnings} />}
+        <ToneChooser value={tone} onChange={setTone} />
+        {coverUrl && !coverMutation.isPending ? (
+          <Button variant="ghost" icon="refresh-cw" onPress={() => coverMutation.mutate()}>Write the letter again in this tone</Button>
+        ) : null}
         {(cvMutation.isError || coverMutation.isError) && <ErrorNotice message={documentErrorMessage(cvMutation.error ?? coverMutation.error)} />}
         {askApplied && data.status === 'evaluated' ? <AppliedPrompt jobId={data.job_id} onDone={() => setAskApplied(false)} /> : null}
       </View>

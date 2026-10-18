@@ -89,6 +89,7 @@ export default function Login() {
               />
               <Button onPress={requestCode} loading={loading} icon="arrow-right" testID="send-code">Email me a code</Button>
               <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>No password. We’ll email you a one-time code.</Text>
+              <Button variant="secondary" icon="check-circle" onPress={() => router.push('/try')} testID="try-first">Not ready? Check a job first</Button>
             </>
           ) : (
             <>

@@ -14,6 +14,28 @@ export type WorkRightsStatus = 'citizen_pr' | 'visa_491' | 'visa_494' | 'needs_s
 export type WorkRights = { status: WorkRightsStatus; note: string; country?: string };
 export type WorkRightsVerdict = 'eligible' | 'check' | 'not_eligible' | 'unknown';
 export type WorkRightsResult = { verdict: WorkRightsVerdict; summary: string; evidence: string };
+
+// How a cover letter sounds. Professional is the default voice.
+export type LetterTone = 'professional' | 'warm' | 'direct';
+export const LETTER_TONES: { key: LetterTone; label: string; hint: string }[] = [
+  { key: 'professional', label: 'Professional', hint: 'Polished and measured.' },
+  { key: 'warm', label: 'Warm', hint: 'Friendlier, like a colleague.' },
+  { key: 'direct', label: 'Direct', hint: 'Short and to the point.' },
+];
+
+// The structured CV behind a generated PDF. Only the wording is editable:
+// jobs, employers, dates and the rest stay as generated.
+export type CvContent = {
+  name?: string;
+  summary?: string;
+  experience?: { company?: string; title?: string; location?: string; dates?: string; bullets: string[] }[];
+  key_projects?: { name?: string; description: string; tools?: string }[];
+};
+export type CvEdits = {
+  summary: string;
+  experience: { bullets: string[] }[];
+  key_projects: { description: string }[];
+};
 /** A drafted answer to one application question (form question, screening question or selection criterion). */
 export type ApplicationAnswer = {
   id: string;
@@ -378,13 +400,23 @@ export const api = {
       ats_grade: string;
       warnings: string[];
     }>('/cv/generate', { method: 'POST', body: { job_id } }),
-  generateCoverLetter: (job_id: string) =>
+  generateCoverLetter: (job_id: string, tone?: LetterTone) =>
     request<{
       pdf_url: string;
       page_count: number;
       word_count: number;
       warnings: string[];
-    }>('/cover-letter/generate', { method: 'POST', body: { job_id } }),
+    }>('/cover-letter/generate', { method: 'POST', body: tone ? { job_id, tone } : { job_id } }),
+  getCv: (id: string) =>
+    request<{ content: CvContent; pdf_url: string }>(`/jobs/${encodeURIComponent(id)}/cv`),
+  saveCv: (id: string, edits: CvEdits) =>
+    request<{ pdf_url: string; page_count: number; content: CvContent; warnings: string[] }>(
+      `/jobs/${encodeURIComponent(id)}/cv`,
+      { method: 'PUT', body: edits }
+    ),
+  // Works signed out: the work-rights verdict for a pasted ad, nothing saved.
+  previewWorkRights: (job_text: string, work_rights: WorkRights) =>
+    request<{ work_rights: WorkRightsResult }>('/preview/work-rights', { method: 'POST', body: { job_text, work_rights } }),
 };
 
 export function isApiError(error: unknown): error is ApiError {
