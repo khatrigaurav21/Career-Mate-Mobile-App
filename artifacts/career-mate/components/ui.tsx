@@ -11,6 +11,7 @@ import {
   TextInput,
   TextInputKeyPressEventData,
   TextInputProps,
+  TextStyle,
   View,
   ViewStyle,
 } from 'react-native';
@@ -660,8 +661,35 @@ export function ScoreRing({
       <Text style={[styles.scoreNumber, { color: tone, fontSize: size * 0.31 }]}>
         {displayScore === null ? '—' : displayScore.toFixed(1)}
       </Text>
-      <Text style={[styles.scoreOutOf, { color: mutedColor ?? colors.mutedForeground }]}>/ 5</Text>
+      <Text style={[styles.scoreOutOf, { color: mutedColor ?? colors.mutedForeground }]}>out of 5</Text>
     </View>
+  );
+}
+
+/**
+ * "4.8/5" on one line for badges and lists: the number, then "/5" smaller,
+ * lighter and on the same baseline, with no space. One look everywhere the
+ * score appears next to other text (the ring above stacks "out of 5" instead,
+ * since a circle is too narrow for it inline).
+ */
+export function ScoreFraction({
+  score,
+  color,
+  numberStyle,
+}: {
+  score: number | null;
+  color: string;
+  numberStyle?: StyleProp<TextStyle>;
+}) {
+  const flat = StyleSheet.flatten(numberStyle) ?? {};
+  const size = typeof flat.fontSize === 'number' ? flat.fontSize : 16;
+  return (
+    <Text style={[numberStyle, { color, fontVariant: ['tabular-nums'] }]}>
+      {score === null ? '—' : score.toFixed(1)}
+      {score === null ? null : (
+        <Text style={{ color, opacity: 0.7, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: Math.round(size * 0.58) }}>/5</Text>
+      )}
+    </Text>
   );
 }
 
@@ -728,7 +756,7 @@ export const styles = StyleSheet.create({
   retryText: { fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 },
   scoreRing: { borderWidth: 6, alignItems: 'center', justifyContent: 'center' },
   scoreNumber: { fontFamily: 'PlusJakartaSans_700Bold', fontVariant: ['tabular-nums'] },
-  scoreOutOf: { fontFamily: 'PlusJakartaSans_500Medium', fontSize: 12, marginTop: -2 },
+  scoreOutOf: { fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 12, lineHeight: 16, marginTop: 1 },
   otpRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 7 },
   otpCell: { flex: 1, maxWidth: 44, height: 56, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   otpInput: { alignSelf: 'stretch', height: 53, textAlign: 'center', fontFamily: 'PlusJakartaSans_700Bold', fontSize: 21, padding: 0 },

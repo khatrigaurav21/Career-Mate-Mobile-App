@@ -15,7 +15,7 @@ import { visaSummary } from '@/components/WorkRights';
 import { STATUS_META, toneColors } from '@/components/ApplicationTracker';
 import { GettingStarted, gettingStartedSteps } from '@/components/GettingStarted';
 import { useOnboarding } from '@/lib/onboarding';
-import { Button, ErrorNotice, SectionEyebrow } from '@/components/ui';
+import { Button, ErrorNotice, ScoreFraction, SectionEyebrow } from '@/components/ui';
 
 type Colors = ReturnType<typeof useColors>;
 type Filter = 'all' | 'active' | 'ready';
@@ -259,9 +259,8 @@ function JobCard({ job, colors, onDelete }: { job: JobSummary; colors: Colors; o
           <Text numberOfLines={2} style={[type.titleCard, { color: colors.navy }]}>{title}</Text>
           <Text numberOfLines={1} style={[type.bodyMd, { color: colors.mutedForeground }]}>{job.company || 'Company not listed'}</Text>
         </View>
-        <View style={{ width: 58, height: 58, borderRadius: 16, backgroundColor: tone.bg, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={[type.headlineMd, { color: tone.fg }]}>{job.score === null ? '—' : job.score.toFixed(1)}</Text>
-          <Text style={[type.labelCaption, { color: tone.fg, marginTop: -4 }]}>/5</Text>
+        <View style={{ minWidth: 64, height: 40, paddingHorizontal: 10, borderRadius: 14, backgroundColor: tone.bg, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' }}>
+          <ScoreFraction score={job.score} color={tone.fg} numberStyle={type.headlineMd} />
         </View>
       </View>
     </Pressable>

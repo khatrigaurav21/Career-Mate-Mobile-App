@@ -6,7 +6,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, ErrorNotice, Field, LoadingNotice, SectionEyebrow } from '@/components/ui';
+import { Button, ErrorNotice, Field, LoadingNotice, ScoreFraction, SectionEyebrow } from '@/components/ui';
 import { AppHeader } from '@/components/AppHeader';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { visaSummary } from '@/components/WorkRights';
@@ -313,10 +313,7 @@ function RecentRow({ job, colors }: { job: JobSummary; colors: Colors }) {
         <Text numberOfLines={1} style={[type.bodySemibold, { color: colors.navy }]}>{job.title || 'Untitled role'}</Text>
         <Text numberOfLines={1} style={[type.labelCaption, { color: colors.mutedForeground }]}>{job.company || 'Company not listed'}</Text>
       </View>
-      <Text style={[type.bodySemibold, { color: colors.navy }]}>
-        {job.score === null ? '—' : job.score.toFixed(1)}
-        <Text style={[type.labelCaption, { color: colors.mutedForeground }]}> /5</Text>
-      </Text>
+      <ScoreFraction score={job.score} color={colors.navy} numberStyle={type.bodySemibold} />
     </Pressable>
   );
 }
