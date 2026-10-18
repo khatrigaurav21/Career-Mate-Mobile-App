@@ -31,6 +31,27 @@ export type CvContent = {
   experience?: { company?: string; title?: string; location?: string; dates?: string; bullets: string[] }[];
   key_projects?: { name?: string; description: string; tools?: string }[];
 };
+// The structured cover letter behind a generated PDF. Only the wording is
+// editable; the name, contact line and credentials stay as generated.
+export type LetterContent = {
+  candidate_name?: string;
+  greeting?: string;
+  opening?: string;
+  profile_intro?: string;
+  achievements?: string[];
+  contribution?: string;
+  bridge?: string;
+  closing?: string;
+};
+export type LetterEdits = {
+  greeting: string;
+  opening: string;
+  profile_intro: string;
+  achievements: string[];
+  contribution: string;
+  bridge: string;
+  closing: string;
+};
 export type CvEdits = {
   summary: string;
   experience: { bullets: string[] }[];
@@ -412,6 +433,13 @@ export const api = {
   saveCv: (id: string, edits: CvEdits) =>
     request<{ pdf_url: string; page_count: number; content: CvContent; warnings: string[] }>(
       `/jobs/${encodeURIComponent(id)}/cv`,
+      { method: 'PUT', body: edits }
+    ),
+  getCoverLetter: (id: string) =>
+    request<{ content: LetterContent; pdf_url: string }>(`/jobs/${encodeURIComponent(id)}/cover-letter`),
+  saveCoverLetter: (id: string, edits: LetterEdits) =>
+    request<{ pdf_url: string; page_count: number; content: LetterContent; warnings: string[] }>(
+      `/jobs/${encodeURIComponent(id)}/cover-letter`,
       { method: 'PUT', body: edits }
     ),
   // Works signed out: the work-rights verdict for a pasted ad, nothing saved.

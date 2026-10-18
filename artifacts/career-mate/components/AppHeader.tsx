@@ -37,11 +37,19 @@ export function AppHeader({ section }: { section: string }) {
         borderBottomColor: colors.border,
       }}
     >
-      <TroziMark size={40} />
-      <View style={{ flex: 1 }}>
-        <Text style={[type.titleCard, { color: colors.navy }]}>Trozi</Text>
-        <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{section}</Text>
-      </View>
+      {/* The logo and name take you Home from any tab. */}
+      <Pressable
+        onPress={() => { if (section !== 'Home') router.replace('/(tabs)'); }}
+        accessibilityRole="button"
+        accessibilityLabel="Go to Home"
+        style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44 }}
+      >
+        <TroziMark size={40} />
+        <View style={{ flex: 1 }}>
+          <Text style={[type.titleCard, { color: colors.navy }]}>Trozi</Text>
+          <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{section}</Text>
+        </View>
+      </Pressable>
       <Pressable
         onPress={() => router.push('/profile')}
         accessibilityRole="button"

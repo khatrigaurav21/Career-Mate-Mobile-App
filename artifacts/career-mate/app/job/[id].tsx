@@ -95,7 +95,7 @@ export default function JobDetail() {
         <DocumentAction
           title="Tailored CV"
           accessibilityLabel="Download tailored CV"
-          description={cvUrl ? 'Your PDF is ready. Tap to download.' : 'Create a tailored version'}
+          description={cvUrl ? 'Ready. Edit it first, or tap to download.' : 'Create a tailored version'}
           icon="file-text"
           url={cvUrl}
           loading={cvMutation.isPending}
@@ -107,11 +107,11 @@ export default function JobDetail() {
           onPress={() => cvUrl ? openDocument(cvUrl) : cvMutation.mutate()}
         />
         {cvMutation.data && <WarningList warnings={cvMutation.data.warnings} />}
-        {cvUrl ? <Button variant="secondary" icon="edit-2" onPress={() => router.push(`/cv/${id}`)}>Review and edit your CV</Button> : null}
+        {cvUrl ? <Button variant="secondary" icon="edit-2" onPress={() => router.push(`/cv/${id}`)}>Edit your CV before downloading</Button> : null}
         <DocumentAction
           title="Cover letter"
           accessibilityLabel="Download cover letter"
-          description={coverUrl ? 'Your PDF is ready. Tap to download.' : 'Create a first draft'}
+          description={coverUrl ? 'Ready. Edit it first, or tap to download.' : 'Create a first draft'}
           icon="edit-3"
           url={coverUrl}
           loading={coverMutation.isPending}
@@ -123,6 +123,7 @@ export default function JobDetail() {
           onPress={() => coverUrl ? openDocument(coverUrl) : coverMutation.mutate()}
         />
         {coverMutation.data && <WarningList warnings={coverMutation.data.warnings} />}
+        {coverUrl ? <Button variant="secondary" icon="edit-2" onPress={() => router.push(`/letter/${id}`)}>Edit your cover letter before downloading</Button> : null}
         <ToneChooser value={tone} onChange={setTone} />
         {coverUrl && !coverMutation.isPending ? (
           <Button variant="ghost" icon="refresh-cw" onPress={() => coverMutation.mutate()}>Write the letter again in this tone</Button>
