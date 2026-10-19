@@ -30,7 +30,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # A normal build takes about 20 minutes; a stuck one should fail fast.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -57,6 +58,19 @@ jobs:
       # still applies.
       - name: Install
         run: pnpm install --frozen-lockfile
+
+      # The update package (expo-updates) needs more Gradle memory than the
+      # default to compile: without this its Kotlin step died with
+      # "OutOfMemoryError: Metaspace", and the failed build then sat idle until
+      # the time limit. A user-level gradle.properties overrides the project's.
+      - name: Give Gradle more memory
+        run: |
+          mkdir -p ~/.gradle
+          {
+            echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1536m"
+            echo "kotlin.daemon.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1536m"
+          } >> ~/.gradle/gradle.properties
+          cat ~/.gradle/gradle.properties
 
       - name: Build APK
         working-directory: artifacts/career-mate
