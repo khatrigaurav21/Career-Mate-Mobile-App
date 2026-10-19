@@ -3,6 +3,12 @@
     "name": "Trozi",
     "slug": "career-mate",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/509ff0ee-064d-4ed7-b819-42cebb6b6c3c"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "career-mate",

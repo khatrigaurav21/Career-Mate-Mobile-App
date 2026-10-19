@@ -206,6 +206,7 @@ export default function Profile() {
             colors={colors}
           />
           <LinkRow icon="trending-up" label="Widen your search" onPress={() => router.push('/insights')} colors={colors} />
+          <LinkRow icon="message-circle" label="Send feedback" onPress={() => router.push('/feedback')} colors={colors} />
           <LinkRow icon="shield" label="Privacy policy" onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} colors={colors} />
           <LinkRow icon="log-out" label="Sign out" tone="primary" onPress={confirmSignOut} colors={colors} />
           <Button

@@ -62,6 +62,7 @@
     "expo-file-system": "^57.0.7",
     "expo-secure-store": "^57.0.4",
     "expo-share-intent": "^8.0.1",
+    "expo-updates": "~57.0.26",
     "moti": "^0.30.0",
     "react-native-webview": "13.16.1"
   }

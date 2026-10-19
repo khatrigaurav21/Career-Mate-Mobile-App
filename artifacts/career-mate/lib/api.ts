@@ -15,6 +15,8 @@ export type WorkRights = { status: WorkRightsStatus; note: string; country?: str
 export type WorkRightsVerdict = 'eligible' | 'check' | 'not_eligible' | 'unknown';
 export type WorkRightsResult = { verdict: WorkRightsVerdict; summary: string; evidence: string };
 
+export type FeedbackKind = 'bug' | 'idea' | 'other';
+
 // How a cover letter sounds. Professional is the default voice.
 export type LetterTone = 'professional' | 'warm' | 'direct';
 export const LETTER_TONES: { key: LetterTone; label: string; hint: string }[] = [
@@ -442,6 +444,8 @@ export const api = {
       `/jobs/${encodeURIComponent(id)}/cover-letter`,
       { method: 'PUT', body: edits }
     ),
+  sendFeedback: (body: { message: string; kind: FeedbackKind; app_version?: string; platform?: string }) =>
+    request<{ ok: boolean }>('/feedback', { method: 'POST', body }),
   // Works signed out: the work-rights verdict for a pasted ad, nothing saved.
   previewWorkRights: (job_text: string, work_rights: WorkRights) =>
     request<{ work_rights: WorkRightsResult }>('/preview/work-rights', { method: 'POST', body: { job_text, work_rights } }),

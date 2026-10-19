@@ -1,0 +1,73 @@
+# Sends a small fix to testers' phones without a new build ("over the air"):
+# bundles the app's JavaScript and publishes it to an EAS Update channel. Apps
+# built with that channel (preview = Android APKs from the Android APK
+# workflow, production = iPhone builds) fetch it the next time they open, and
+# run it the time after.
+#
+# Only for JavaScript, text and image changes. Anything that changes the app's
+# native side (a new package that has native code, app.json plugins, the app
+# icon or splash, permissions) needs a real build, and the app's version in
+# app.json must be raised first. An update only reaches builds with the SAME
+# version, so raising it also keeps an update from reaching a build that can't
+# run it.
+#
+# Run it: GitHub → Actions → "OTA update" → Run workflow, pick the channel and
+# say what changed. Uses the same EXPO_TOKEN secret as the Android workflow.
+name: OTA update
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Which builds get it (preview = Android APK testers, production = iPhone TestFlight)
+        default: preview
+        type: choice
+        options: [preview, production]
+      message:
+        description: What changed (shown in Expo's update list)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ota-update
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish update
+        working-directory: artifacts/career-mate
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          # Baked into the JavaScript at publish time, like it is in a build.
+          EXPO_PUBLIC_SENTRY_DSN: https://35b309e4ade04bac5e4c4f34d6c7d6dc@o4512201851535360.ingest.us.sentry.io/4512201948790784
+          SENTRY_DISABLE_AUTO_UPLOAD: "true"
+          UPDATE_MESSAGE: ${{ inputs.message }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Add the EXPO_TOKEN repository secret first (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          npx --yes eas-cli@24.8.0 update \
+            --channel "${{ inputs.channel }}" \
+            --message "$UPDATE_MESSAGE" \
+            --non-interactive
