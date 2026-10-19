@@ -24,6 +24,9 @@ type Filter = 'all' | 'active' | 'ready';
 const ACTIVE = new Set(['applied', 'interviewing', 'offer']);
 
 const HIGH_MATCH = 4.0;
+// Patterns across roles only mean something after a few of them, so the
+// insights card waits until someone has checked this many.
+const INSIGHTS_AFTER = 3;
 
 export default function Home() {
   const colors = useColors();
@@ -45,6 +48,7 @@ export default function Home() {
     }),
     [jobs],
   );
+  const scored = jobs.filter((j) => j.score !== null).length;
   const visible =
     filter === 'ready' ? jobs.filter((j) => j.has_cv) : filter === 'active' ? jobs.filter((j) => ACTIVE.has(j.status)) : jobs;
   const workRights = (profile?.preferences?.work_rights as WorkRights | undefined) ?? null;
@@ -96,6 +100,7 @@ export default function Home() {
                     </Text>
                   </View>
                 )}
+                {scored >= INSIGHTS_AFTER && <InsightsCard count={scored} colors={colors} />}
                 <View style={{ gap: 10 }}>
                   <Text style={[type.headlineSm, { color: colors.navy }]}>Your roles</Text>
                   <View style={{ flexDirection: 'row', alignSelf: 'flex-start', backgroundColor: colors.muted, borderRadius: 99, padding: 3 }}>
@@ -166,6 +171,39 @@ function VisaCard({ workRights, colors }: { workRights: WorkRights | null; color
         </Text>
       </View>
       <Feather name="chevron-right" size={18} color={summary ? colors.accentForeground : colors.warning} style={{ marginTop: 10 }} />
+    </Pressable>
+  );
+}
+
+/** A way into "Widen your search" once there are enough checked roles to find patterns in. */
+function InsightsCard({ count, colors }: { count: number; colors: Colors }) {
+  return (
+    <Pressable
+      onPress={() => router.push('/insights')}
+      accessibilityRole="button"
+      accessibilityHint="Opens skills your roles keep asking for and job titles you could search"
+      style={({ pressed }) => ({
+        backgroundColor: colors.card,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 18,
+        padding: 16,
+        flexDirection: 'row',
+        gap: 12,
+        alignItems: 'center',
+        opacity: pressed ? 0.8 : 1,
+      })}
+    >
+      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}>
+        <Feather name="trending-up" size={20} color={colors.accentForeground} />
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[type.titleCard, { color: colors.navy }]}>See what your roles keep asking for</Text>
+        <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>
+          You’ve checked {count} roles. See the skills that come up again and again, and titles you could search.
+        </Text>
+      </View>
+      <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
     </Pressable>
   );
 }
