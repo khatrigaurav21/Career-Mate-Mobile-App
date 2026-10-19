@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
+import * as Updates from 'expo-updates';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { Button, Screen, SectionEyebrow } from '@/components/ui';
@@ -25,6 +26,13 @@ function updatedLabel(iso?: string) {
   if (days === 1) return 'Updated yesterday';
   if (days < 30) return `Updated ${days} days ago`;
   return `Updated ${new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+}
+
+// Which code is running: the built-in bundle, or an over-the-air update (its
+// short id). Lets a tester and us confirm a fix actually arrived.
+function versionLabel() {
+  const id = Updates.updateId;
+  return id ? `Update ${id.slice(0, 8)}` : 'Built-in version';
 }
 
 export default function Profile() {
@@ -218,6 +226,9 @@ export default function Profile() {
           >
             Delete account
           </Button>
+          <Text style={[type.labelCaption, { color: colors.mutedForeground, textAlign: 'center' }]} selectable>
+            {versionLabel()}
+          </Text>
         </View>
       </Screen>
     </View>
