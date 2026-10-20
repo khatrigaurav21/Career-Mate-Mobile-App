@@ -13,7 +13,7 @@ import { useColors } from '@/hooks/useColors';
 import { type } from '@/constants/typography';
 import { api } from '@/lib/api';
 import type { WorkRights } from '@/lib/api';
-import { PRIVACY_POLICY_URL } from '@/lib/config';
+import { PRIVACY_POLICY_URL, TERMS_URL } from '@/lib/config';
 import { useOnboarding } from '@/lib/onboarding';
 
 type Colors = ReturnType<typeof useColors>;
@@ -215,6 +215,7 @@ export default function Profile() {
           />
           <LinkRow icon="trending-up" label="Widen your search" onPress={() => router.push('/insights')} colors={colors} />
           <LinkRow icon="message-circle" label="Send feedback" onPress={() => router.push('/feedback')} colors={colors} />
+          <LinkRow icon="file-text" label="Terms of service" onPress={() => void WebBrowser.openBrowserAsync(TERMS_URL)} colors={colors} />
           <LinkRow icon="shield" label="Privacy policy" onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} colors={colors} />
           <LinkRow icon="log-out" label="Sign out" tone="primary" onPress={confirmSignOut} colors={colors} />
           <Button

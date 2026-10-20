@@ -3,6 +3,7 @@ export const API_BASE_URL =
   'https://career-mate-api.onrender.com';
 
 export const PRIVACY_POLICY_URL = `${API_BASE_URL}/privacy`;
+export const TERMS_URL = `${API_BASE_URL}/terms`;
 
 export const SESSION_KEY = 'career_mate_session';
 

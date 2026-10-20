@@ -8,7 +8,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
-import { PRIVACY_POLICY_URL } from '@/lib/config';
+import { PRIVACY_POLICY_URL, TERMS_URL } from '@/lib/config';
 
 export default function Login() {
   const colors = useColors();
@@ -117,8 +117,10 @@ export default function Login() {
         </View>
       </View>
       <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>
-        By continuing, you agree to use Trozi for your own career materials. See our{' '}
-        <Text onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} style={{ color: colors.primary, textDecorationLine: 'underline' }} accessibilityRole="link">Privacy policy</Text>
+        By continuing, you agree to our{' '}
+        <Text onPress={() => void WebBrowser.openBrowserAsync(TERMS_URL)} style={{ color: colors.primary, textDecorationLine: 'underline' }} accessibilityRole="link">Terms</Text>
+        {' '}and{' '}
+        <Text onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} style={{ color: colors.primary, textDecorationLine: 'underline' }} accessibilityRole="link">Privacy policy</Text>.
       </Text>
     </KeyboardAwareScrollViewCompat>
   );
