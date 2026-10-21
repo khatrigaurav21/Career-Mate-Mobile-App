@@ -18,8 +18,10 @@ import { ShareIntentProvider } from 'expo-share-intent';
 import { ShareIntentHandler } from '@/components/ShareIntentHandler';
 import { setBaseUrl } from '@workspace/api-client-react';
 import { initErrorReporting, wrapRoot } from '@/lib/errorReporting';
+import { restoreAppearance } from '@/lib/appearance';
 
 initErrorReporting();
+restoreAppearance();
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

@@ -15,6 +15,7 @@ import { api } from '@/lib/api';
 import type { WorkRights } from '@/lib/api';
 import { PRIVACY_POLICY_URL, TERMS_URL } from '@/lib/config';
 import { useOnboarding } from '@/lib/onboarding';
+import { APPEARANCE_CHOICES, useAppearance } from '@/lib/appearance';
 
 type Colors = ReturnType<typeof useColors>;
 
@@ -33,6 +34,43 @@ function updatedLabel(iso?: string) {
 function versionLabel() {
   const id = Updates.updateId;
   return id ? `Update ${id.slice(0, 8)}` : 'Built-in version';
+}
+
+function AppearanceRow({ colors }: { colors: Colors }) {
+  const { choice, setChoice } = useAppearance();
+  return (
+    <View style={{ gap: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Feather name="moon" size={16} color={colors.navy} />
+        <Text style={[type.bodySemibold, { color: colors.navy }]}>Appearance</Text>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 8 }} accessibilityRole="radiogroup">
+        {APPEARANCE_CHOICES.map((c) => {
+          const selected = choice === c.value;
+          return (
+            <Pressable
+              key={c.value}
+              onPress={() => setChoice(c.value)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected }}
+              accessibilityLabel={`${c.label} appearance`}
+              style={({ pressed }) => ({
+                flex: 1,
+                minHeight: 44,
+                borderRadius: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: selected ? colors.primary : colors.muted,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <Text style={[type.bodySemibold, { color: selected ? colors.primaryForeground : colors.navy }]}>{c.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
 }
 
 export default function Profile() {
@@ -205,6 +243,7 @@ export default function Profile() {
         </View>
 
         <View style={{ gap: 2 }}>
+          <AppearanceRow colors={colors} />
           <LinkRow
             icon="play-circle"
             label="Show the app tour again"
