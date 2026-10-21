@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
+import { Feather } from '@expo/vector-icons';
 import { api, isApiError } from '@/lib/api';
+import { usePreviewConsent } from '@/lib/aiConsent';
 import type { WorkRights } from '@/lib/api';
 import { useColors } from '@/hooks/useColors';
 import { Button, ErrorNotice, Field, PageHeader, Screen } from '@/components/ui';
@@ -20,6 +22,7 @@ export default function TryFirst() {
   const [ad, setAd] = useState('');
   const check = useMutation({ mutationFn: () => api.previewWorkRights(ad.trim(), workRights as WorkRights) });
 
+  const { accepted: consent, setAccepted: setConsent } = usePreviewConsent();
   const ready = workRights !== null && ad.trim().length >= MIN_AD;
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/login'));
   const message = isApiError(check.error) && [400, 429, 503].includes(check.error.status)
@@ -57,11 +60,24 @@ export default function TryFirst() {
             onChangeText={setAd}
             autoCorrect={false}
           />
+          <Pressable
+            onPress={() => setConsent(!consent)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: consent }}
+            style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start', padding: 14, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: consent ? colors.primary : colors.border }}
+          >
+            <View style={{ width: 24, height: 24, borderRadius: 7, marginTop: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: consent ? colors.primary : colors.border, backgroundColor: consent ? colors.primary : 'transparent' }}>
+              {consent ? <Feather name="check" size={15} color={colors.primaryForeground} /> : null}
+            </View>
+            <Text style={{ flex: 1, color: colors.foreground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 13, lineHeight: 19 }}>
+              I agree that the ad text and the work rights I picked are sent to Google’s Gemini AI to work out the answer. Nothing is saved, and under Google’s paid-tier terms it isn’t used to improve its products.
+            </Text>
+          </Pressable>
           {check.isError ? <ErrorNotice message={message} /> : null}
-          <Button icon="check-circle" loading={check.isPending} disabled={!ready} onPress={() => check.mutate()}>Check this job</Button>
-          {!ready ? (
+          <Button icon="check-circle" loading={check.isPending} disabled={!ready || !consent} onPress={() => check.mutate()}>Check this job</Button>
+          {!ready || !consent ? (
             <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 12, textAlign: 'center' }}>
-              {workRights === null ? 'Pick your work rights, then paste the ad.' : 'Paste the whole ad so we can check it properly.'}
+              {workRights === null ? 'Pick your work rights, then paste the ad.' : ad.trim().length < MIN_AD ? 'Paste the whole ad so we can check it properly.' : 'Tick the box above to continue.'}
             </Text>
           ) : null}
         </View>

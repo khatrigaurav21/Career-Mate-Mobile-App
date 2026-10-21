@@ -16,6 +16,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/context/AuthContext';
 import { ShareIntentProvider } from 'expo-share-intent';
 import { ShareIntentHandler } from '@/components/ShareIntentHandler';
+import { AiConsentGate } from '@/components/AiConsentGate';
 import { setBaseUrl } from '@workspace/api-client-react';
 import { initErrorReporting, wrapRoot } from '@/lib/errorReporting';
 import { restoreAppearance } from '@/lib/appearance';
@@ -59,6 +60,7 @@ function RootLayout() {
               <KeyboardProvider>
                 <RootLayoutNav />
                 <ShareIntentHandler />
+                <AiConsentGate />
               </KeyboardProvider>
             </GestureHandlerRootView>
           </AuthProvider>

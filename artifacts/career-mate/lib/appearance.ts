@@ -22,6 +22,8 @@ function isChoice(v: unknown): v is AppearanceChoice {
 }
 
 function apply(choice: AppearanceChoice) {
+  // The web build has no such function; the phone's own setting applies there.
+  if (typeof Appearance.setColorScheme !== 'function') return;
   // 'unspecified' hands control back to the phone's own setting.
   Appearance.setColorScheme(choice === 'system' ? 'unspecified' : choice);
 }

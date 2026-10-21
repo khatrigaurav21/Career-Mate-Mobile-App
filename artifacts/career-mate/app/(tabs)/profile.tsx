@@ -253,6 +253,7 @@ export default function Profile() {
             colors={colors}
           />
           <LinkRow icon="trending-up" label="Widen your search" onPress={() => router.push('/insights')} colors={colors} />
+          <LinkRow icon="cpu" label="How Trozi uses AI" onPress={() => router.push('/ai-consent?review=1')} colors={colors} />
           <LinkRow icon="message-circle" label="Send feedback" onPress={() => router.push('/feedback')} colors={colors} />
           <LinkRow icon="file-text" label="Terms of service" onPress={() => void WebBrowser.openBrowserAsync(TERMS_URL)} colors={colors} />
           <LinkRow icon="shield" label="Privacy policy" onPress={() => void WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)} colors={colors} />
