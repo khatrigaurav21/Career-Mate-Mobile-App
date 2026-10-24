@@ -24,6 +24,8 @@ export default function TryFirst() {
 
   const { accepted: consent, setAccepted: setConsent } = usePreviewConsent();
   const ready = workRights !== null && ad.trim().length >= MIN_AD;
+  // A link pasted here can't be read: this quick check needs the ad's own text.
+  const looksLikeLink = /^\s*https?:\/\/\S+\s*$/i.test(ad);
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/login'));
   const message = isApiError(check.error) && [400, 429, 503].includes(check.error.status)
     ? check.error.message
@@ -55,7 +57,7 @@ export default function TryFirst() {
             label="The job ad"
             multiline
             placeholder="Paste the whole job ad here"
-            helper="Paste the ad’s text, not a link. We don’t save it."
+            helper="Paste the ad’s text, not a link. We don’t save it. (Signed in, you can paste links.)"
             value={ad}
             onChangeText={setAd}
             autoCorrect={false}
@@ -73,6 +75,14 @@ export default function TryFirst() {
               I agree that the ad text and the work rights I picked are sent to Google’s Gemini AI to work out the answer. Nothing is saved, and under Google’s paid-tier terms it isn’t used to improve its products.
             </Text>
           </Pressable>
+          {looksLikeLink ? (
+            <View style={{ flexDirection: 'row', gap: 10, padding: 14, borderRadius: 14, backgroundColor: colors.warningSoft }}>
+              <Feather name="link" size={18} color={colors.warning} style={{ marginTop: 2 }} />
+              <Text style={{ flex: 1, color: colors.foreground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 13, lineHeight: 19 }}>
+                That’s a link. This quick check needs the ad’s text: open the ad, select all, copy, and paste it here. Once you sign in, Trozi can read links for you.
+              </Text>
+            </View>
+          ) : null}
           {check.isError ? <ErrorNotice message={message} /> : null}
           <Button icon="check-circle" loading={check.isPending} disabled={!ready || !consent} onPress={() => check.mutate()}>Check this job</Button>
           {!ready || !consent ? (
