@@ -11,6 +11,7 @@ import { IconButton, Screen } from '@/components/ui';
 import { JobGate } from '@/components/JobGate';
 import { ApplicationTracker } from '@/components/ApplicationTracker';
 import { InterviewPrepCard } from '@/components/InterviewPrep';
+import { findAdEmail } from '@/lib/adContact';
 import { useJobProgress } from '@/lib/jobProgress';
 import { type } from '@/constants/typography';
 
@@ -42,6 +43,9 @@ function Hub({ job, id }: { job: JobDetail; id: string }) {
   const order = ['verdict', 'fit', 'cv', 'letter', 'questions'] as const;
   const nextKey = order.find((k) => !done[k]) ?? null;
   const stateOf = (k: (typeof order)[number]): RowState => (done[k] ? 'done' : k === nextKey ? 'next' : 'todo');
+
+  // Offered only when the ad names an address and the visa check hasn't ruled the job out.
+  const adEmail = verdict !== 'not_eligible' && findAdEmail(typeof job.raw_description === 'string' ? job.raw_description : null);
 
   const go = (to: string) => {
     void Haptics.selectionAsync().catch(() => {});
