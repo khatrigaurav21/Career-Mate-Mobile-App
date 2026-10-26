@@ -54,6 +54,10 @@ export type LetterEdits = {
   bridge: string;
   closing: string;
 };
+export type CvSuggestion =
+  | { status: 'ready'; target: 'bullet' | 'summary'; job_index: number | null; line: string; note: string; warnings: string[] }
+  | { status: 'needs_info'; question: string }
+  | { status: 'unsupported'; note: string };
 export type CvEdits = {
   summary: string;
   experience: { bullets: string[] }[];
@@ -437,6 +441,9 @@ export const api = {
       `/jobs/${encodeURIComponent(id)}/cv`,
       { method: 'PUT', body: edits }
     ),
+  /** Proposes one honest CV line for a "what to change" item. Nothing is saved. */
+  suggestCvLine: (id: string, suggestion: string) =>
+    request<CvSuggestion>(`/jobs/${encodeURIComponent(id)}/cv/suggestion`, { method: 'POST', body: { suggestion } }),
   getCoverLetter: (id: string) =>
     request<{ content: LetterContent; pdf_url: string }>(`/jobs/${encodeURIComponent(id)}/cover-letter`),
   saveCoverLetter: (id: string, edits: LetterEdits) =>

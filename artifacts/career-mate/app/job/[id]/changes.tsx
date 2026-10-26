@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { JobGate } from '@/components/JobGate';
 import { StepScreen } from '@/components/StepScreen';
+import { CvSuggestionCard } from '@/components/CvSuggestionCard';
 import { summariseChanges } from '@/lib/reportSummary';
 import { getDocumentUrl } from '@/lib/api';
 import type { JobDetail } from '@/lib/api';
@@ -30,15 +31,8 @@ function ChangesBody({ job, id }: { job: JobDetail; id: string }) {
       secondary={{ label: 'Read the full report', onPress: () => router.push(`/job/${id}/details`) }}
     >
       {changes.length > 0 ? (
-        <View style={{ gap: 16, padding: 18, borderRadius: 22, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
-          {changes.map((text, i) => (
-            <View key={i} style={{ flexDirection: 'row', gap: 12 }}>
-              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: colors.primaryForeground, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 14 }}>{i + 1}</Text>
-              </View>
-              <Text style={[type.bodyMd, { flex: 1, color: colors.foreground }]}>{text}</Text>
-            </View>
-          ))}
+        <View style={{ gap: 12 }}>
+          {changes.map((text, i) => <CvSuggestionCard key={i} jobId={id} index={i} text={text} hasCv={hasCv} />)}
         </View>
       ) : (
         <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>We couldn’t split the plan into steps. Open the full report to read it.</Text>
