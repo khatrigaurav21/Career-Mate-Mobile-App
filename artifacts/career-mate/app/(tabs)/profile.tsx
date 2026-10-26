@@ -30,10 +30,13 @@ function updatedLabel(iso?: string) {
 }
 
 // Which code is running: the built-in bundle, or an over-the-air update (its
-// short id). Lets a tester and us confirm a fix actually arrived.
+// short id). Lets a tester and us confirm a fix actually arrived. The built-in
+// bundle has an id too, so the label goes by whether this launch is built-in,
+// not by whether an id exists.
 function versionLabel() {
   const id = Updates.updateId;
-  return id ? `Update ${id.slice(0, 8)}` : 'Built-in version';
+  if (Updates.isEmbeddedLaunch || !id) return 'Built-in version';
+  return `Update ${id.slice(0, 8)}`;
 }
 
 function AppearanceRow({ colors }: { colors: Colors }) {

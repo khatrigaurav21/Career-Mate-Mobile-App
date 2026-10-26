@@ -23,7 +23,7 @@ const KINDS: { key: FeedbackKind; label: string }[] = [
 function appVersion() {
   const version = Constants.expoConfig?.version ?? '';
   // The id of the over-the-air update the phone is running, when it has one.
-  const update = Updates.updateId ? Updates.updateId.slice(0, 8) : '';
+  const update = !Updates.isEmbeddedLaunch && Updates.updateId ? Updates.updateId.slice(0, 8) : '';
   return [version, update ? `(${update})` : ''].filter(Boolean).join(' ');
 }
 
