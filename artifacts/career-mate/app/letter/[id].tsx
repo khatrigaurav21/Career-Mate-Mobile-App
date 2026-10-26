@@ -7,10 +7,13 @@ import { api, isApiError } from '@/lib/api';
 import type { LetterContent } from '@/lib/api';
 import { useColors } from '@/hooks/useColors';
 import { Button, ErrorNotice, Field, IconButton, LoadingState, PageHeader, Screen, WarningList } from '@/components/ui';
+import { StepScreen } from '@/components/StepScreen';
+import { type } from '@/constants/typography';
 
-// Reword a generated cover letter before downloading it. The name, contact
-// line and credentials stay as generated. Saving re-makes the one-page PDF and
-// flags anything that isn't in the person's profile.
+// Reword a generated cover letter before downloading it, one paragraph at a
+// time. The name, contact line and credentials stay as generated. Saving
+// re-makes the one-page PDF and flags anything that isn't in the person's
+// profile.
 
 type Draft = {
   greeting: string;
@@ -21,6 +24,8 @@ type Draft = {
   bridge: string;
   closing: string;
 };
+
+const STEPS = ['opening', 'about', 'wins', 'contribute', 'closing'] as const;
 
 function toDraft(c: LetterContent): Draft {
   return {
@@ -42,6 +47,7 @@ export default function EditLetter() {
   const letter = useQuery({ queryKey: ['letter', id], queryFn: () => api.getCoverLetter(id), enabled: !!id && !!session, retry: false });
   const [draft, setDraft] = useState<Draft | null>(null);
   const [savedPdf, setSavedPdf] = useState<string | null>(null);
+  const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
     if (letter.data && !draft) setDraft(toDraft(letter.data.content));
@@ -96,19 +102,34 @@ export default function EditLetter() {
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((d) => d && { ...d, [key]: value });
   const setAchievement = (index: number, text: string) => set('achievements', draft.achievements.map((a, i) => (i === index ? text : a)));
 
-  return (
-    <Screen>
-      {header}
-      <Text style={{ color: colors.mutedForeground, fontFamily: 'PlusJakartaSans_400Regular', fontSize: 13, lineHeight: 19 }}>
-        Make it yours. If you add a number or a claim that isn’t in your profile, we’ll flag it after you save, so you keep it only if it’s true. Wrap a few words in ** ** to make them bold.
-      </Text>
+  const at = Math.min(stepIndex, STEPS.length - 1);
+  const step = STEPS[at];
+  const progress = { step: at + 1, of: STEPS.length };
+  const goBack = () => (at === 0 ? router.back() : setStepIndex(at - 1));
+  const next = (label: string) => ({ label, onPress: () => setStepIndex(at + 1) });
+  const common = { eyebrow: 'Edit your cover letter', progress, onBack: goBack, showHome: false } as const;
+  const hint = (text: string) => <Text style={[type.labelCaption, { color: colors.mutedForeground, lineHeight: 18 }]}>{text}</Text>;
 
-      <Field label="Greeting" value={draft.greeting} onChangeText={(t) => set('greeting', t)} />
-      <Field label="Opening" multiline value={draft.opening} onChangeText={(t) => set('opening', t)} />
-      <Field label="About you" multiline value={draft.profile_intro} onChangeText={(t) => set('profile_intro', t)} />
-
-      <View style={{ gap: 10 }}>
-        <Text style={{ color: colors.navy, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 }}>Achievements</Text>
+  if (step === 'opening') {
+    return (
+      <StepScreen {...common} title="How it starts" primary={next('Next: about you')}>
+        <Field label="Greeting" value={draft.greeting} onChangeText={(t) => set('greeting', t)} />
+        <Field label="Opening" multiline value={draft.opening} onChangeText={(t) => set('opening', t)} />
+        {hint('Make it yours. Wrap a few words in ** ** to make them bold.')}
+      </StepScreen>
+    );
+  }
+  if (step === 'about') {
+    return (
+      <StepScreen {...common} title="About you" primary={next('Next: your wins')}>
+        <Field label="About you" multiline value={draft.profile_intro} onChangeText={(t) => set('profile_intro', t)} />
+        {hint('Who you are, in two or three sentences.')}
+      </StepScreen>
+    );
+  }
+  if (step === 'wins') {
+    return (
+      <StepScreen {...common} title="Your wins" primary={next('Next: how you’d contribute')}>
         {draft.achievements.map((a, i) => (
           <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
             <View style={{ flex: 1 }}>
@@ -120,23 +141,34 @@ export default function EditLetter() {
           </View>
         ))}
         {draft.achievements.length < 8 ? <Button variant="ghost" icon="plus" onPress={() => set('achievements', [...draft.achievements, ''])}>Add an achievement</Button> : null}
-      </View>
+        {hint('Each one should come from your CV.')}
+      </StepScreen>
+    );
+  }
+  if (step === 'contribute') {
+    return (
+      <StepScreen {...common} title="How you’d contribute" primary={next('Next: closing')}>
+        <Field label="How you’d contribute" multiline value={draft.contribution} onChangeText={(t) => set('contribution', t)} />
+        <Field label="Bridge (optional)" helper="One sentence linking your experience to anything the role needs that your CV doesn’t show. Leave empty to skip it." multiline value={draft.bridge} onChangeText={(t) => set('bridge', t)} />
+      </StepScreen>
+    );
+  }
 
-      <Field label="How you’d contribute" multiline value={draft.contribution} onChangeText={(t) => set('contribution', t)} />
-      <Field label="Bridge (optional)" helper="One sentence linking your experience to anything the role needs that your CV doesn’t show. Leave empty to skip it." multiline value={draft.bridge} onChangeText={(t) => set('bridge', t)} />
+  // Last step: the closing, then save.
+  const saved = !!savedPdf && !dirty;
+  return (
+    <StepScreen
+      {...common}
+      title={saved ? 'Saved' : 'How it ends'}
+      primary={saved ? { label: 'Back to your letter', onPress: () => router.replace(`/job/${id}/letter`) } : { label: 'Save changes', icon: 'check', onPress: () => save.mutate(), loading: save.isPending, disabled: !dirty }}
+      secondary={saved && savedPdf ? { label: 'Open the PDF', icon: 'download', onPress: () => void Linking.openURL(savedPdf) } : undefined}
+    >
       <Field label="Closing" multiline value={draft.closing} onChangeText={(t) => set('closing', t)} />
-
       {save.isError ? (
         <ErrorNotice message={isApiError(save.error) && [400, 422, 429].includes(save.error.status) ? save.error.message : 'We couldn’t save your changes. You can try again.'} />
       ) : null}
       {save.data && !dirty ? <WarningList warnings={save.data.warnings} /> : null}
-      <Button icon="check" loading={save.isPending} disabled={!dirty} onPress={() => save.mutate()}>Save changes</Button>
-      {savedPdf && !dirty ? (
-        <View style={{ gap: 10 }}>
-          <Text style={{ color: colors.foreground, fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 }}>Saved. Your PDF is updated.</Text>
-          <Button variant="secondary" icon="download" onPress={() => void Linking.openURL(savedPdf)}>Open the PDF</Button>
-        </View>
-      ) : null}
-    </Screen>
+      {saved ? <Text style={[type.bodySemibold, { color: colors.foreground }]}>Your PDF is updated.</Text> : hint('If you add a number or a claim that isn’t in your profile, we’ll flag it after you save, so you keep it only if it’s true.')}
+    </StepScreen>
   );
 }

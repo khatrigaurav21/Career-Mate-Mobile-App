@@ -11,6 +11,7 @@ import { IconButton, Screen } from '@/components/ui';
 import { JobGate } from '@/components/JobGate';
 import { ApplicationTracker } from '@/components/ApplicationTracker';
 import { InterviewPrepCard } from '@/components/InterviewPrep';
+import { useJobProgress } from '@/lib/jobProgress';
 import { type } from '@/constants/typography';
 
 const VERDICT_LINE: Record<WorkRightsVerdict, string> = {
@@ -34,12 +35,13 @@ function Hub({ job, id }: { job: JobDetail; id: string }) {
   const verdict = (job.work_rights?.verdict ?? job.work_rights_verdict ?? 'unknown') as WorkRightsVerdict;
   const score = typeof job.score === 'number' ? job.score : null;
 
-  // One suggested next step, in the order people usually work through it.
-  const next = !cvUrl
-    ? { title: 'Tailor your CV', icon: 'file-text' as const, to: `/job/${id}/cv` }
-    : !coverUrl
-      ? { title: 'Write your cover letter', icon: 'edit-3' as const, to: `/job/${id}/letter` }
-      : { title: 'Prepare for the interview', icon: 'mic' as const, to: `/prep/${id}` };
+  // The rows keep their order. Finished steps turn green and the first
+  // unfinished one is highlighted; nothing moves.
+  const { seen } = useJobProgress(id);
+  const done = { verdict: seen.verdict, fit: seen.fit, cv: !!cvUrl, letter: !!coverUrl, questions: seen.questions };
+  const order = ['verdict', 'fit', 'cv', 'letter', 'questions'] as const;
+  const nextKey = order.find((k) => !done[k]) ?? null;
+  const stateOf = (k: (typeof order)[number]): RowState => (done[k] ? 'done' : k === nextKey ? 'next' : 'todo');
 
   const go = (to: string) => {
     void Haptics.selectionAsync().catch(() => {});
@@ -69,55 +71,60 @@ function Hub({ job, id }: { job: JobDetail; id: string }) {
 
       {job.content_url ? <SourceNote url={job.content_url} /> : null}
 
-      <Pressable
-        onPress={() => go(next.to)}
-        accessibilityRole="button"
-        accessibilityLabel={`Next: ${next.title}`}
-        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 22, backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 })}
-      >
-        <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
-          <Feather name={next.icon} size={22} color={colors.primaryForeground} />
-        </View>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={[type.labelCaption, { color: colors.primaryForeground, opacity: 0.8, letterSpacing: 1 }]}>NEXT</Text>
-          <Text style={[type.titleCard, { color: colors.primaryForeground, fontSize: 18 }]}>{next.title}</Text>
-        </View>
-        <Feather name="arrow-right" size={20} color={colors.primaryForeground} />
-      </Pressable>
-
       <View style={{ gap: 10 }}>
-        <HubRow icon="shield" title="Can you take it?" sub={VERDICT_LINE[verdict]} onPress={() => go(`/job/${id}/verdict`)} />
-        <HubRow icon="target" title="Your fit" sub={score === null ? 'Still processing' : `${score.toFixed(1)} out of 5. Where you match and fall short`} onPress={() => go(`/job/${id}/fit`)} />
-        <HubRow icon="file-text" title="Tailored CV" sub={cvUrl ? 'Ready. Edit or download' : 'Not made yet'} done={!!cvUrl} onPress={() => go(`/job/${id}/cv`)} />
-        <HubRow icon="edit-3" title="Cover letter" sub={coverUrl ? 'Ready. Edit or download' : 'Not made yet'} done={!!coverUrl} onPress={() => go(`/job/${id}/letter`)} />
-        <HubRow icon="message-circle" title="Application questions" sub="Paste a question, get an answer" onPress={() => go(`/job/${id}/answers`)} />
+        <HubRow icon="shield" title="Can you take it?" sub={VERDICT_LINE[verdict]} state={stateOf('verdict')} onPress={() => go(`/job/${id}/verdict`)} />
+        <HubRow icon="target" title="Your fit" sub={score === null ? 'Still processing' : `${score.toFixed(1)} out of 5. Where you match and fall short`} state={stateOf('fit')} onPress={() => go(`/job/${id}/fit`)} />
+        <HubRow icon="file-text" title="Tailored CV" sub={cvUrl ? 'Ready. Edit or download' : 'Not made yet'} state={stateOf('cv')} onPress={() => go(`/job/${id}/cv`)} />
+        <HubRow icon="edit-3" title="Cover letter" sub={coverUrl ? 'Ready. Edit or download' : 'Not made yet'} state={stateOf('letter')} onPress={() => go(`/job/${id}/letter`)} />
+        <HubRow icon="message-circle" title="Application questions" sub="Paste a question, get an answer" state={stateOf('questions')} onPress={() => go(`/job/${id}/answers`)} />
       </View>
 
       <InterviewPrepCard job={job} />
       <ApplicationTracker job={job} />
 
-      <HubRow icon="list" title="Full report" sub="Every section of the evaluation" onPress={() => go(`/job/${id}/details`)} />
+      <HubRow icon="list" title="Full report" sub="Every section of the evaluation" state="todo" onPress={() => go(`/job/${id}/details`)} />
     </Screen>
   );
 }
 
-function HubRow({ icon, title, sub, onPress, done }: { icon: keyof typeof Feather.glyphMap; title: string; sub: string; onPress: () => void; done?: boolean }) {
+type RowState = 'done' | 'next' | 'todo';
+
+function HubRow({ icon, title, sub, onPress, state }: { icon: keyof typeof Feather.glyphMap; title: string; sub: string; onPress: () => void; state: RowState }) {
   const colors = useColors();
+  const done = state === 'done';
+  const next = state === 'next';
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${title}. ${sub}`}
-      style={({ pressed }) => ({ minHeight: 68, borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.72 : 1 })}
+      accessibilityLabel={`${title}. ${sub}${done ? '. Done' : next ? '. Next' : ''}`}
+      style={({ pressed }) => ({
+        minHeight: 68,
+        borderRadius: 18,
+        backgroundColor: done ? colors.successSoft : colors.card,
+        borderWidth: next ? 2 : 1,
+        borderColor: done ? colors.success : next ? colors.primary : colors.border,
+        paddingHorizontal: 14,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        opacity: pressed ? 0.72 : 1,
+      })}
     >
-      <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: done ? colors.successSoft : colors.accent, alignItems: 'center', justifyContent: 'center' }}>
-        <Feather name={done ? 'check' : icon} size={19} color={done ? colors.success : colors.teal} />
+      <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: done ? colors.success : next ? colors.primary : colors.muted, alignItems: 'center', justifyContent: 'center' }}>
+        <Feather name={done ? 'check' : icon} size={19} color={done || next ? colors.primaryForeground : colors.mutedForeground} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={[type.titleCard, { color: colors.navy }]}>{title}</Text>
-        <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{sub}</Text>
+        <Text style={[type.labelCaption, { color: done ? colors.success : colors.mutedForeground }]}>{sub}</Text>
       </View>
-      <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+      {next ? (
+        <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99, backgroundColor: colors.primary }}>
+          <Text style={[type.labelCaption, { color: colors.primaryForeground, fontFamily: 'PlusJakartaSans_700Bold' }]}>Next</Text>
+        </View>
+      ) : (
+        <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+      )}
     </Pressable>
   );
 }
