@@ -15,7 +15,26 @@ import { Button } from '@/components/ui';
  * profile supports, shows it for editing, and only saves when the person taps
  * Add. If the profile can't back it, the card says so instead of inventing.
  */
-export function CvSuggestionCard({ jobId, index, text, hasCv }: { jobId: string; index: number; text: string; hasCv: boolean }) {
+export function CvSuggestionCard({
+  jobId,
+  index,
+  text,
+  hasCv,
+  heading,
+  detail,
+  request,
+}: {
+  jobId: string;
+  index: number;
+  /** The suggestion shown on the card (and sent to the API unless `request` is given). */
+  text: string;
+  hasCv: boolean;
+  /** Optional bold title (a gap's requirement) shown above `detail`. */
+  heading?: string;
+  detail?: string;
+  /** What to ask the API when it differs from the card text. */
+  request?: string;
+}) {
   const colors = useColors();
   const queryClient = useQueryClient();
   const [proposal, setProposal] = useState<CvSuggestion | null>(null);
@@ -23,7 +42,7 @@ export function CvSuggestionCard({ jobId, index, text, hasCv }: { jobId: string;
   const [added, setAdded] = useState(false);
 
   const propose = useMutation({
-    mutationFn: () => api.suggestCvLine(jobId, text),
+    mutationFn: () => api.suggestCvLine(jobId, request ?? text),
     onSuccess: (result) => {
       setProposal(result);
       if (result.status === 'ready') setLine(result.line);
@@ -61,7 +80,14 @@ export function CvSuggestionCard({ jobId, index, text, hasCv }: { jobId: string;
         <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: added ? colors.success : colors.primary, alignItems: 'center', justifyContent: 'center' }}>
           {added ? <Feather name="check" size={15} color={colors.primaryForeground} /> : <Text style={{ color: colors.primaryForeground, fontFamily: 'PlusJakartaSans_700Bold', fontSize: 14 }}>{index + 1}</Text>}
         </View>
-        <Text style={[type.bodyMd, { flex: 1, color: colors.foreground }]}>{text}</Text>
+        {heading ? (
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={[type.bodySemibold, { color: colors.foreground }]}>{heading}</Text>
+            {detail ? <Text style={[type.bodyMd, { color: colors.foreground }]}>{detail}</Text> : null}
+          </View>
+        ) : (
+          <Text style={[type.bodyMd, { flex: 1, color: colors.foreground }]}>{text}</Text>
+        )}
       </View>
 
       {added ? (
@@ -86,8 +112,8 @@ export function CvSuggestionCard({ jobId, index, text, hasCv }: { jobId: string;
       ) : proposal?.status === 'needs_info' ? (
         <View style={{ gap: 10 }}>
           <Text style={[type.bodyMd, { color: colors.foreground }]}>{proposal.question}</Text>
-          <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Your profile doesn’t show this yet, so we haven’t added anything. Add it to your profile, then try again.</Text>
-          <Button variant="secondary" onPress={() => router.push('/(tabs)/profile')}>Open my profile</Button>
+          <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Your profile doesn’t show this yet, so we haven’t added anything. Add it under “Add numbers and results”, then try again.</Text>
+          <Button variant="secondary" onPress={() => router.push('/details' as never)}>Add it to my profile</Button>
         </View>
       ) : proposal?.status === 'unsupported' ? (
         <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{proposal.note}</Text>

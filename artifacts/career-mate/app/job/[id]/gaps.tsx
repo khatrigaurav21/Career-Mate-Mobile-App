@@ -1,10 +1,10 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
 import { JobGate } from '@/components/JobGate';
 import { StepScreen } from '@/components/StepScreen';
-import { StatusChip } from '@/components/ui';
+import { CvSuggestionCard } from '@/components/CvSuggestionCard';
+import { getDocumentUrl } from '@/lib/api';
 import { summariseMatch } from '@/lib/reportSummary';
 import { useColors } from '@/hooks/useColors';
 import { type } from '@/constants/typography';
@@ -25,18 +25,18 @@ export default function GapsStep() {
             secondary={{ label: 'Read the full report', onPress: () => router.push(`/job/${id}/details`) }}
           >
             {gaps.length > 0 ? (
-              <View style={{ gap: 14, padding: 18, borderRadius: 22, backgroundColor: colors.warningSoft }}>
+              <View style={{ gap: 12 }}>
                 {gaps.slice(0, 4).map((row, i) => (
-                  <View key={i} style={{ flexDirection: 'row', gap: 12 }}>
-                    <Feather name="alert-circle" size={18} color={colors.warning} style={{ marginTop: 3 }} />
-                    <View style={{ flex: 1, gap: 4 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <Text style={[type.bodySemibold, { color: colors.foreground }]}>{row.requirement}</Text>
-                        <StatusChip tone={row.kind === 'missing' ? 'warning' : 'neutral'}>{row.kind === 'missing' ? 'Missing' : 'Partial'}</StatusChip>
-                      </View>
-                      <Text style={[type.bodyMd, { color: colors.foreground }]}>{row.detail}</Text>
-                    </View>
-                  </View>
+                  <CvSuggestionCard
+                    key={i}
+                    jobId={id}
+                    index={i}
+                    text={row.requirement}
+                    heading={`${row.requirement} (${row.kind === 'missing' ? 'missing' : 'partial'})`}
+                    detail={row.detail}
+                    request={`Show evidence that the candidate meets this requirement, using only what their profile supports: ${row.requirement}. ${row.detail}`.slice(0, 780)}
+                    hasCv={!!getDocumentUrl(job, 'cv')}
+                  />
                 ))}
               </View>
             ) : counts.strong > 0 ? (
