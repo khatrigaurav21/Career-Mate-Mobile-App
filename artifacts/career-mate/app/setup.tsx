@@ -84,7 +84,8 @@ export default function Setup() {
         await api.setWorkRights(workRights).catch(() => {});
       }
       await refreshProfile();
-      router.replace('/welcome');
+      // Ask for the numbers and results a CV leaves out before the tour.
+      router.replace((params.redo ? '/details' : '/details?next=welcome') as never);
     } catch (submitError) {
       if (isFallbackToPaste(submitError)) {
         setMode('paste');

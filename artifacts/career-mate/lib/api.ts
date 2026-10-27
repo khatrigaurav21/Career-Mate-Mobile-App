@@ -10,6 +10,12 @@ export type Profile = {
   updated_at?: string;
 };
 
+/** Extra facts added after the CV: scope, a result and tools per role, plus other work. */
+export type ProfileDetails = {
+  roles: { label: string; scope: string; result: string; tools: string }[];
+  extras: string;
+};
+
 export type WorkRightsStatus = 'citizen_pr' | 'visa_491' | 'visa_494' | 'needs_sponsorship' | 'other';
 export type WorkRights = { status: WorkRightsStatus; note: string; country?: string };
 export type WorkRightsVerdict = 'eligible' | 'check' | 'not_eligible' | 'unknown';
@@ -339,6 +345,10 @@ export const api = {
       body: { refresh_token },
       skipAuthRefresh: true,
     }),
+  /** Recent roles read from the CV, newest first, to ask about each. */
+  getProfileRoles: () => request<{ roles: string[] }>('/profile/roles'),
+  saveProfileDetails: (details: ProfileDetails) =>
+    request<{ details: ProfileDetails }>('/profile/details', { method: 'PUT', body: details }),
   getProfile: (token?: string | null) => request<Profile>('/profile', { token }),
   uploadProfile: (uri: string, name: string, type?: string) =>
     upload('/profile/upload', 'resume_file', uri, name, type),

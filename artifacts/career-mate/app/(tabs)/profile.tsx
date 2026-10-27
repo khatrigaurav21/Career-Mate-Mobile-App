@@ -255,6 +255,7 @@ export default function Profile() {
             }}
             colors={colors}
           />
+          <LinkRow icon="bar-chart-2" label="Add numbers and results" onPress={() => router.push('/details' as never)} colors={colors} />
           <LinkRow icon="trending-up" label="Widen your search" onPress={() => router.push('/insights')} colors={colors} />
           <LinkRow icon="cpu" label="How Trozi uses AI" onPress={() => router.push('/ai-consent?review=1')} colors={colors} />
           <LinkRow icon="message-circle" label="Send feedback" onPress={() => router.push('/feedback')} colors={colors} />
