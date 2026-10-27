@@ -33,7 +33,9 @@ export const LETTER_TONES: { key: LetterTone; label: string; hint: string }[] = 
 
 // The structured CV behind a generated PDF. Only the wording is editable:
 // jobs, employers, dates and the rest stay as generated.
+export type CvNotes = { strongest_matches?: string[]; unsupported_requirements?: string[]; questions?: string[] };
 export type CvContent = {
+  notes?: CvNotes;
   name?: string;
   summary?: string;
   experience?: { company?: string; title?: string; location?: string; dates?: string; bullets: string[] }[];
@@ -435,6 +437,7 @@ export const api = {
       page_count: number;
       ats_score: number;
       ats_grade: string;
+      notes?: CvNotes | null;
       warnings: string[];
     }>('/cv/generate', { method: 'POST', body: { job_id } }),
   generateCoverLetter: (job_id: string, tone?: LetterTone) =>
