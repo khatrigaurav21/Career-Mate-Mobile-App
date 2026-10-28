@@ -7,6 +7,7 @@ import { StepScreen } from '@/components/StepScreen';
 import { DocumentAction, documentErrorMessage } from '@/components/DocumentAction';
 import { ToneChooser } from '@/components/ToneChooser';
 import { AppliedPrompt } from '@/components/AppliedPrompt';
+import { CoverLetterText } from '@/components/CoverLetterText';
 import { Button, ErrorNotice, WarningList } from '@/components/ui';
 import { api, getDocumentUrl } from '@/lib/api';
 import type { JobDetail, LetterTone } from '@/lib/api';
@@ -24,6 +25,7 @@ function LetterBody({ job, id }: { job: JobDetail; id: string }) {
     mutationFn: () => api.generateCoverLetter(id, tone),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['job', id] });
+      void queryClient.invalidateQueries({ queryKey: ['letter', id] });
       void queryClient.invalidateQueries({ queryKey: ['pipeline'] });
     },
   });
@@ -56,6 +58,7 @@ function LetterBody({ job, id }: { job: JobDetail; id: string }) {
         onPress={() => (url ? open(url) : mutation.mutate())}
       />
       {url ? <Button variant="secondary" icon="edit-2" onPress={() => router.push(`/letter/${id}`)}>Edit before downloading</Button> : null}
+      {url && !mutation.isPending ? <CoverLetterText jobId={id} version={mutation.data?.pdf_url ?? url} /> : null}
       {mutation.data ? <WarningList warnings={mutation.data.warnings} /> : null}
       {mutation.isError ? <ErrorNotice message={documentErrorMessage(mutation.error)} /> : null}
       {askApplied && job.status === 'evaluated' ? <AppliedPrompt jobId={job.job_id} onDone={() => setAskApplied(false)} /> : null}
