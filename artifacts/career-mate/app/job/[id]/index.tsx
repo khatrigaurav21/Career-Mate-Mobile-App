@@ -81,6 +81,8 @@ function Hub({ job, id }: { job: JobDetail; id: string }) {
         <HubRow icon="file-text" title="Tailored CV" sub={cvUrl ? 'Ready. Edit or download' : 'Not made yet'} state={stateOf('cv')} onPress={() => go(`/job/${id}/cv`)} />
         <HubRow icon="edit-3" title="Cover letter" sub={coverUrl ? 'Ready. Edit or download' : 'Not made yet'} state={stateOf('letter')} onPress={() => go(`/job/${id}/letter`)} />
         <HubRow icon="message-circle" title="Application questions" sub="Paste a question, get an answer" state={stateOf('questions')} onPress={() => go(`/job/${id}/answers`)} />
+        <HubRow icon="send" title="Apply" sub={job.status === 'evaluated' ? 'Open the application with everything ready' : 'Marked as applied'} state={job.status !== 'evaluated' ? 'done' : nextKey === null ? 'next' : 'todo'} onPress={() => go(`/job/${id}/apply`)} />
+        {adEmail ? <HubRow icon="mail" title="Email in the ad" sub={`Send your application to ${adEmail}`} state="todo" onPress={() => go(`/job/${id}/email`)} /> : null}
       </View>
 
       <InterviewPrepCard job={job} />

@@ -39,7 +39,7 @@ function LetterBody({ job, id }: { job: JobDetail; id: string }) {
     <StepScreen
       eyebrow={[job.title, job.company].filter(Boolean).join(' · ') || 'This job'}
       title="Cover letter"
-      primary={url ? { label: 'Next: application questions', onPress: () => router.push(`/job/${id}/answers`) } : { label: 'Write my letter', onPress: () => mutation.mutate(), loading: mutation.isPending }}
+      primary={url ? { label: 'Next: apply', onPress: () => router.push(`/job/${id}/apply`) } : { label: 'Write my letter', onPress: () => mutation.mutate(), loading: mutation.isPending }}
       secondary={url && !mutation.isPending ? { label: 'Write it again in this tone', icon: 'refresh-cw', onPress: () => mutation.mutate() } : undefined}
     >
       <ToneChooser value={tone} onChange={setTone} />

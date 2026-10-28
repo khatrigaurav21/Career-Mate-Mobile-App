@@ -36,6 +36,7 @@ export const LETTER_TONES: { key: LetterTone; label: string; hint: string }[] = 
 export type CvNotes = { strongest_matches?: string[]; unsupported_requirements?: string[]; questions?: string[] };
 export type CvContent = {
   notes?: CvNotes;
+  contact_line?: string;
   name?: string;
   summary?: string;
   experience?: { company?: string; title?: string; location?: string; dates?: string; bullets: string[] }[];
