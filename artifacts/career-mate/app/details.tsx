@@ -13,9 +13,10 @@ import { StepScreen } from '@/components/StepScreen';
 type RoleAnswers = { scope: string; result: string; tools: string };
 const BLANK: RoleAnswers = { scope: '', result: '', tools: '' };
 
-// Optional profile details for improving tailored CVs, letters, answers and
-// interview prep. Users can add these later from Profile or when a CV suggestion
-// needs supporting information. One role per screen, skippable at any point.
+// After the CV is in, ask for what a CV usually leaves out: how big the job
+// was, one result with a number, the tools, and work that isn't on the CV.
+// Every answer is the person's own and is used by the CV, letter, answers and
+// interview prep for every job. One role per screen, skippable at any point.
 export default function DetailsScreen() {
   const { next } = useLocalSearchParams<{ next?: string }>();
   const { session, hydrated, profile, refreshProfile } = useAuth();
@@ -62,12 +63,12 @@ export default function DetailsScreen() {
 
   if (step === 0) {
     return (
-      <StepScreen title="Add details when you’re ready" progress={{ step: 1, of: last + 1 }} onBack={leave} showHome={false} primary={{ label: labels.length ? 'Let’s go' : 'Add other work', onPress: () => setStep(labels.length ? 1 : last) }} secondary={skip}>
+      <StepScreen title="Make your CV stronger" progress={{ step: 1, of: last + 1 }} onBack={leave} showHome={false} primary={{ label: labels.length ? 'Let’s go' : 'Add other work', onPress: () => setStep(labels.length ? 1 : last) }} secondary={skip}>
         <Text style={[type.bodyLg, { color: colors.foreground }]}>
-          A few optional details—like team size, results and tools—can help strengthen tailored CVs and cover letters.
+          Employers look for numbers: how big the team was, what improved, which tools you used. A CV file rarely shows them.
         </Text>
         <Text style={[type.bodyMd, { color: colors.mutedForeground }]}>
-          Add them now, or skip and return later from Profile or when a CV suggestion needs more information.
+          A minute per job. We only use what you tell us, and we use it to tailor every CV and cover letter to each job ad.
         </Text>
         {roles.isError ? <ErrorNotice message="We couldn’t read your jobs from the CV. You can still add other work." /> : null}
       </StepScreen>
