@@ -84,8 +84,8 @@ export default function Setup() {
         await api.setWorkRights(workRights).catch(() => {});
       }
       await refreshProfile();
-      // Ask for the numbers and results a CV leaves out before the tour.
-      router.replace((params.redo ? '/details' : '/details?next=welcome') as never);
+      // Keep extra work-history details optional; they remain available from Profile.
+      router.replace((params.redo ? '/(tabs)/profile' : '/welcome') as never);
     } catch (submitError) {
       if (isFallbackToPaste(submitError)) {
         setMode('paste');
