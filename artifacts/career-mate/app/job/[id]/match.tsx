@@ -21,7 +21,7 @@ export default function MatchStep() {
           <StepScreen
             eyebrow={[job.title, job.company].filter(Boolean).join(' · ') || 'This job'}
             title="Where you match"
-            progress={{ step: 3, of: 5 }}
+            progress={{ step: 3, of: 4 }}
             primary={{ label: 'Next: where you fall short', onPress: () => router.push(`/job/${id}/gaps`) }}
             secondary={{ label: 'Read the full report', onPress: () => router.push(`/job/${id}/details`) }}
           >

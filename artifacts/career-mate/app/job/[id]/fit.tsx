@@ -20,7 +20,7 @@ export default function FitStep() {
           <StepScreen
             eyebrow={[job.title, job.company].filter(Boolean).join(' · ') || 'This job'}
             title="Your fit score"
-            progress={{ step: 2, of: 5 }}
+            progress={{ step: 2, of: 4 }}
             primary={{ label: 'Next: where you match', onPress: () => router.push(`/job/${id}/match`) }}
           >
             <View style={{ alignItems: 'center', gap: 16, paddingVertical: 12 }}>

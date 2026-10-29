@@ -18,7 +18,7 @@ function VerdictBody({ job, id }: { job: JobDetail; id: string }) {
     <StepScreen
       eyebrow={[job.title, job.company].filter(Boolean).join(' · ') || 'This job'}
       title="Can you take it?"
-      progress={{ step: 1, of: 5 }}
+      progress={{ step: 1, of: 4 }}
       primary={{ label: 'Next: how well you fit', onPress: () => router.push(`/job/${id}/fit`) }}
     >
       <WorkRightsCheck job={job} />

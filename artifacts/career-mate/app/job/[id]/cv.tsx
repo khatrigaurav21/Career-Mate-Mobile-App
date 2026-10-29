@@ -7,7 +7,7 @@ import { StepScreen } from '@/components/StepScreen';
 import { DocumentAction, documentErrorMessage } from '@/components/DocumentAction';
 import { AppliedPrompt } from '@/components/AppliedPrompt';
 import { CvNotes } from '@/components/CvNotes';
-import { ErrorNotice, WarningList } from '@/components/ui';
+import { Button, ErrorNotice, WarningList } from '@/components/ui';
 import { api, getDocumentUrl } from '@/lib/api';
 import type { JobDetail } from '@/lib/api';
 
@@ -25,6 +25,10 @@ function CvBody({ job, id }: { job: JobDetail; id: string }) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['job', id] });
       void queryClient.invalidateQueries({ queryKey: ['pipeline'] });
+      void queryClient.invalidateQueries({ queryKey: ['cv', id] });
+      // The CV exists now, so offer what to add to it right away instead of
+      // sending the person back a screen.
+      router.push(`/job/${id}/changes?from=cv` as never);
     },
   });
   const url = mutation.data?.pdf_url ?? getDocumentUrl(job, 'cv');
@@ -57,6 +61,9 @@ function CvBody({ job, id }: { job: JobDetail; id: string }) {
         ]}
         onPress={() => (url ? open(url) : mutation.mutate())}
       />
+      {url && !mutation.isPending ? (
+        <Button variant="secondary" icon="trending-up" onPress={() => router.push(`/job/${id}/changes?from=cv` as never)}>Make it stronger</Button>
+      ) : null}
       <CvNotes notes={notes} />
       {mutation.data ? <WarningList warnings={mutation.data.warnings} /> : null}
       {mutation.isError ? <ErrorNotice message={documentErrorMessage(mutation.error)} /> : null}
