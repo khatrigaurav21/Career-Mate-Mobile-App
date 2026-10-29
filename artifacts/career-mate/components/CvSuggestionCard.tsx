@@ -5,21 +5,25 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Feather } from '@expo/vector-icons';
 import { api, ApiError } from '@/lib/api';
-import type { CvSuggestion } from '@/lib/api';
+import type { CvSuggestion, LetterSuggestion } from '@/lib/api';
 import { useColors } from '@/hooks/useColors';
 import { type } from '@/constants/typography';
 import { Button } from '@/components/ui';
 
+type Suggestion = CvSuggestion | LetterSuggestion;
+
 /**
- * One "what to change" item as a card. "Add to CV" asks the API for a line the
- * profile supports, shows it for editing, and only saves when the person taps
- * Add. If the profile can't back it, the card says so instead of inventing.
+ * One suggestion as a card, for the CV or the cover letter. "Add to ..." asks
+ * the API for a line the profile supports, shows it for editing, and only saves
+ * when the person taps Add. If the profile can't back it, the card says so
+ * instead of inventing.
  */
 export function CvSuggestionCard({
   jobId,
   index,
   text,
-  hasCv,
+  hasDocument,
+  document = 'cv',
   heading,
   detail,
   request,
@@ -28,7 +32,9 @@ export function CvSuggestionCard({
   index: number;
   /** The suggestion shown on the card (and sent to the API unless `request` is given). */
   text: string;
-  hasCv: boolean;
+  /** Whether the CV or letter being added to exists yet. */
+  hasDocument: boolean;
+  document?: 'cv' | 'letter';
   /** Optional bold title (a gap's requirement) shown above `detail`. */
   heading?: string;
   detail?: string;
@@ -37,12 +43,14 @@ export function CvSuggestionCard({
 }) {
   const colors = useColors();
   const queryClient = useQueryClient();
-  const [proposal, setProposal] = useState<CvSuggestion | null>(null);
+  const isLetter = document === 'letter';
+  const noun = isLetter ? 'letter' : 'CV';
+  const [proposal, setProposal] = useState<Suggestion | null>(null);
   const [line, setLine] = useState('');
   const [added, setAdded] = useState(false);
 
   const propose = useMutation({
-    mutationFn: () => api.suggestCvLine(jobId, request ?? text),
+    mutationFn: (): Promise<Suggestion> => (isLetter ? api.suggestLetterLine(jobId, request ?? text) : api.suggestCvLine(jobId, request ?? text)),
     onSuccess: (result) => {
       setProposal(result);
       if (result.status === 'ready') setLine(result.line);
@@ -52,20 +60,33 @@ export function CvSuggestionCard({
   const add = useMutation({
     mutationFn: async () => {
       if (proposal?.status !== 'ready') return;
+      const newLine = line.trim();
+      if (isLetter) {
+        const { content } = await api.getCoverLetter(jobId);
+        const achievements = content.achievements ?? [];
+        await api.saveCoverLetter(jobId, {
+          greeting: content.greeting ?? '',
+          opening: content.opening ?? '',
+          profile_intro: content.profile_intro ?? '',
+          achievements: proposal.target === 'achievement' ? [...achievements, newLine] : achievements,
+          contribution: content.contribution ?? '',
+          bridge: proposal.target === 'bridge' ? newLine : content.bridge ?? '',
+          closing: content.closing ?? '',
+        });
+        return;
+      }
       const { content } = await api.getCv(jobId);
-      const text = line.trim();
       const jobs = content.experience ?? [];
-      const edits = {
-        summary: proposal.target === 'summary' ? text : content.summary ?? '',
-        experience: jobs.map((j, i) => ({ bullets: proposal.target === 'bullet' && i === proposal.job_index ? [...j.bullets, text] : j.bullets })),
+      await api.saveCv(jobId, {
+        summary: proposal.target === 'summary' ? newLine : content.summary ?? '',
+        experience: jobs.map((j, i) => ({ bullets: proposal.target === 'bullet' && 'job_index' in proposal && i === proposal.job_index ? [...j.bullets, newLine] : j.bullets })),
         key_projects: (content.key_projects ?? []).map((p) => ({ description: p.description })),
-      };
-      await api.saveCv(jobId, edits);
+      });
     },
     onSuccess: () => {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       setAdded(true);
-      void queryClient.invalidateQueries({ queryKey: ['cv', jobId] });
+      void queryClient.invalidateQueries({ queryKey: [isLetter ? 'letter' : 'cv', jobId] });
       void queryClient.invalidateQueries({ queryKey: ['job', jobId] });
     },
   });
@@ -73,6 +94,12 @@ export function CvSuggestionCard({
   const error = propose.error ?? add.error;
   const errorText = error ? (error instanceof ApiError ? error.message : 'Something went wrong. Please try again.') : null;
   const card = { gap: 12, padding: 16, borderRadius: 20, backgroundColor: added ? colors.successSoft : colors.card, borderWidth: 1, borderColor: added ? colors.success : colors.border } as const;
+
+  const readyLabel = (target: string) =>
+    target === 'summary' ? 'New summary. Edit it if you like.'
+      : target === 'bridge' ? 'New bridge sentence. It replaces the current one. Edit it if you like.'
+        : target === 'achievement' ? 'New achievement line. Edit it if you like.'
+          : 'New bullet. Edit it if you like.';
 
   return (
     <View style={card}>
@@ -91,22 +118,20 @@ export function CvSuggestionCard({
       </View>
 
       {added ? (
-        <Text style={[type.labelCaption, { color: colors.success }]}>Added to your CV</Text>
+        <Text style={[type.labelCaption, { color: colors.success }]}>Added to your {noun}</Text>
       ) : proposal?.status === 'ready' ? (
         <View style={{ gap: 10 }}>
-          <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>
-            {proposal.target === 'summary' ? 'New summary. Edit it if you like.' : 'New bullet. Edit it if you like.'}
-          </Text>
+          <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{readyLabel(proposal.target)}</Text>
           <TextInput
             value={line}
             onChangeText={setLine}
             multiline
-            accessibilityLabel="Line to add to your CV"
+            accessibilityLabel={`Line to add to your ${noun}`}
             style={[type.bodyMd, { color: colors.foreground, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 12, minHeight: 72, textAlignVertical: 'top' }]}
           />
           {proposal.note ? <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{proposal.note}</Text> : null}
           {proposal.warnings.map((w, i) => <Text key={i} style={[type.labelCaption, { color: colors.warning }]}>{w}</Text>)}
-          <Button onPress={() => add.mutate()} loading={add.isPending} disabled={!line.trim()} icon="plus">Add to CV</Button>
+          <Button onPress={() => add.mutate()} loading={add.isPending} disabled={!line.trim()} icon="plus">{`Add to ${noun}`}</Button>
           <Button variant="ghost" onPress={() => setProposal(null)}>Not now</Button>
         </View>
       ) : proposal?.status === 'needs_info' ? (
@@ -117,13 +142,16 @@ export function CvSuggestionCard({
         </View>
       ) : proposal?.status === 'unsupported' ? (
         <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{proposal.note}</Text>
-      ) : hasCv ? (
-        <Button variant="secondary" onPress={() => propose.mutate()} loading={propose.isPending} icon="plus-circle">Add to CV</Button>
+      ) : hasDocument ? (
+        <Button variant="secondary" onPress={() => propose.mutate()} loading={propose.isPending} icon="plus-circle">{`Add to ${noun}`}</Button>
       ) : (
-        <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>Make your tailored CV first, then you can add this to it.</Text>
+        <Text style={[type.labelCaption, { color: colors.mutedForeground }]}>{`Make your ${isLetter ? 'cover letter' : 'tailored CV'} first, then you can add this to it.`}</Text>
       )}
 
       {errorText ? <Text style={[type.labelCaption, { color: colors.destructive }]}>{errorText}</Text> : null}
+      {isLetter && add.error instanceof ApiError && add.error.status === 422 ? (
+        <Button variant="ghost" onPress={() => router.push(`/letter/${jobId}`)}>Edit the letter to make room</Button>
+      ) : null}
     </View>
   );
 }

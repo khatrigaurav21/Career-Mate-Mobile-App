@@ -51,7 +51,7 @@ function ChangesBody({ job, id, afterCv }: { job: JobDetail; id: string; afterCv
       {changes.length > 0 ? (
         <View style={{ gap: 12 }}>
           <Text style={[type.titleCard, { color: colors.navy }]}>What to change</Text>
-          {changes.map((text, i) => <CvSuggestionCard key={`c${i}`} jobId={id} index={i} text={text} hasCv={hasCv} />)}
+          {changes.map((text, i) => <CvSuggestionCard key={`c${i}`} jobId={id} index={i} text={text} hasDocument={hasCv} />)}
         </View>
       ) : null}
 
@@ -67,7 +67,7 @@ function ChangesBody({ job, id, afterCv }: { job: JobDetail; id: string; afterCv
               heading={`${row.requirement} (${row.kind === 'missing' ? 'missing' : 'partial'})`}
               detail={row.detail}
               request={`Show evidence that the candidate meets this requirement, using only what their profile supports: ${row.requirement}. ${row.detail}`.slice(0, 780)}
-              hasCv={hasCv}
+              hasDocument={hasCv}
             />
           ))}
         </View>

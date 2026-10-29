@@ -67,6 +67,10 @@ export type CvSuggestion =
   | { status: 'ready'; target: 'bullet' | 'summary'; job_index: number | null; line: string; note: string; warnings: string[] }
   | { status: 'needs_info'; question: string }
   | { status: 'unsupported'; note: string };
+export type LetterSuggestion =
+  | { status: 'ready'; target: 'achievement' | 'bridge'; line: string; note: string; warnings: string[] }
+  | { status: 'needs_info'; question: string }
+  | { status: 'unsupported'; note: string };
 export type CvEdits = {
   summary: string;
   experience: { bullets: string[] }[];
@@ -458,6 +462,9 @@ export const api = {
   /** Proposes one honest CV line for a "what to change" item. Nothing is saved. */
   suggestCvLine: (id: string, suggestion: string) =>
     request<CvSuggestion>(`/jobs/${encodeURIComponent(id)}/cv/suggestion`, { method: 'POST', body: { suggestion } }),
+  /** Proposes one honest cover letter line (an achievement or the bridge). Nothing is saved. */
+  suggestLetterLine: (id: string, suggestion: string) =>
+    request<LetterSuggestion>(`/jobs/${encodeURIComponent(id)}/cover-letter/suggestion`, { method: 'POST', body: { suggestion } }),
   getCoverLetter: (id: string) =>
     request<{ content: LetterContent; pdf_url: string }>(`/jobs/${encodeURIComponent(id)}/cover-letter`),
   saveCoverLetter: (id: string, edits: LetterEdits) =>
