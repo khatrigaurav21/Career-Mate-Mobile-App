@@ -1,73 +1,67 @@
 import React, { useState } from 'react';
-import { Linking } from 'react-native';
-import { router } from 'expo-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { View } from 'react-native';
 import { JobGate } from '@/components/JobGate';
-import { StepScreen } from '@/components/StepScreen';
-import { DocumentAction, documentErrorMessage } from '@/components/DocumentAction';
+import { DocumentFlow } from '@/components/DocumentFlow';
+import type { FlowSuggestion } from '@/components/DocumentFlow';
+import { LetterPreview } from '@/components/DocumentPreview';
 import { ToneChooser } from '@/components/ToneChooser';
-import { AppliedPrompt } from '@/components/AppliedPrompt';
 import { CoverLetterText } from '@/components/CoverLetterText';
-import { Button, ErrorNotice, WarningList } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { api, getDocumentUrl } from '@/lib/api';
-import type { JobDetail, LetterTone } from '@/lib/api';
+import type { JobDetail, LetterContent, LetterTone } from '@/lib/api';
+import { summariseChanges, summariseMatch } from '@/lib/reportSummary';
+import { letterEditsFrom } from '@/lib/stagedEdits';
 
-// Your cover letter on its own screen: choose a tone, make it, download it, or edit it first.
+// Your cover letter, start to finish on one screen, the same way as the CV: it
+// is written when you arrive, shown for you to read, then you add points and
+// press Update once. The tone can be changed from the finished screen.
 export default function LetterStep() {
   return <JobGate>{(job, id) => <LetterBody job={job} id={id} />}</JobGate>;
 }
 
 function LetterBody({ job, id }: { job: JobDetail; id: string }) {
-  const queryClient = useQueryClient();
   const [tone, setTone] = useState<LetterTone>('professional');
-  const [askApplied, setAskApplied] = useState(false);
-  const mutation = useMutation({
-    mutationFn: () => api.generateCoverLetter(id, tone),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['job', id] });
-      void queryClient.invalidateQueries({ queryKey: ['letter', id] });
-      void queryClient.invalidateQueries({ queryKey: ['pipeline'] });
-      // The letter exists now, so offer what to add to it right away. Writing it
-      // again in another tone stays on this screen.
-      if (!getDocumentUrl(job, 'cover')) router.push(`/job/${id}/letter-stronger?from=letter` as never);
-    },
-  });
-  const url = mutation.data?.pdf_url ?? getDocumentUrl(job, 'cover');
-  const open = (link: string) => {
-    void Linking.openURL(link);
-    if (job.status === 'evaluated') setAskApplied(true);
-  };
+  const gaps = summariseMatch(job.report?.B).gaps.slice(0, 3);
+  const ideas = summariseChanges(job.report?.E).slice(0, 3);
+  const suggestions: FlowSuggestion[] = [
+    ...gaps.map((row, i) => ({
+      key: `g${i}`,
+      text: row.requirement,
+      heading: `${row.requirement} (${row.kind === 'missing' ? 'missing' : 'partial'})`,
+      detail: row.detail,
+      request: `Add a line to the cover letter that connects the candidate's real experience to this requirement, using only what their profile supports: ${row.requirement}. ${row.detail}`.slice(0, 780),
+    })),
+    ...ideas.map((text, i) => ({ key: `i${i}`, text })),
+  ];
 
   return (
-    <StepScreen
-      eyebrow={[job.title, job.company].filter(Boolean).join(' · ') || 'This job'}
-      title="Cover letter"
-      primary={url ? { label: 'Next: apply', onPress: () => router.push(`/job/${id}/apply`) } : { label: 'Write my letter', onPress: () => mutation.mutate(), loading: mutation.isPending }}
-      secondary={url && !mutation.isPending ? { label: 'Write it again in this tone', icon: 'refresh-cw', onPress: () => mutation.mutate() } : undefined}
-    >
-      <ToneChooser value={tone} onChange={setTone} />
-      <DocumentAction
-        title="Cover letter"
-        accessibilityLabel="Download cover letter"
-        description={url ? 'Ready. Edit it first, or tap to download.' : 'Written from your CV and this ad'}
-        icon="edit-3"
-        url={url}
-        loading={mutation.isPending}
-        progressSteps={[
-          { label: 'Pulling your strongest matches', estimatedMs: 20000 },
-          { label: 'Writing the draft', estimatedMs: 40000 },
-          { label: 'Formatting the PDF', estimatedMs: 30000 },
-        ]}
-        onPress={() => (url ? open(url) : mutation.mutate())}
-      />
-      {url ? <Button variant="secondary" icon="edit-2" onPress={() => router.push(`/letter/${id}`)}>Edit before downloading</Button> : null}
-      {url && !mutation.isPending ? (
-        <Button variant="secondary" icon="trending-up" onPress={() => router.push(`/job/${id}/letter-stronger?from=letter` as never)}>Make it stronger</Button>
-      ) : null}
-      {url && !mutation.isPending ? <CoverLetterText jobId={id} version={mutation.data?.pdf_url ?? url} /> : null}
-      {mutation.data ? <WarningList warnings={mutation.data.warnings} /> : null}
-      {mutation.isError ? <ErrorNotice message={documentErrorMessage(mutation.error)} /> : null}
-      {askApplied && job.status === 'evaluated' ? <AppliedPrompt jobId={job.job_id} onDone={() => setAskApplied(false)} /> : null}
-    </StepScreen>
+    <DocumentFlow<LetterContent>
+      job={job}
+      jobId={id}
+      noun="cover letter"
+      docKey="cover"
+      queryKey="letter"
+      generate={() => api.generateCoverLetter(id, tone)}
+      loadContent={() => api.getCoverLetter(id)}
+      save={(content, staged) => api.saveCoverLetter(id, letterEditsFrom(content, staged))}
+      renderPreview={(content) => <LetterPreview content={content} />}
+      suggestions={suggestions}
+      suggestionDoc="letter"
+      nextLabel="Next: apply"
+      nextTo={`/job/${id}/apply`}
+      editPath={`/letter/${id}`}
+      extra={(regenerate) => (
+        <View style={{ gap: 12 }}>
+          <CoverLetterText jobId={id} version={getDocumentUrl(job, 'cover') ?? undefined} />
+          <ToneChooser value={tone} onChange={setTone} />
+          <Button variant="ghost" icon="refresh-cw" onPress={regenerate}>Write it again in this tone</Button>
+        </View>
+      )}
+      progressSteps={[
+        { label: 'Pulling your strongest matches', estimatedMs: 20000 },
+        { label: 'Writing the draft', estimatedMs: 40000 },
+        { label: 'Formatting the PDF', estimatedMs: 30000 },
+      ]}
+    />
   );
 }

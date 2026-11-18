@@ -38,9 +38,15 @@ export type CvContent = {
   notes?: CvNotes;
   contact_line?: string;
   name?: string;
+  headline?: string;
   summary?: string;
+  core_competencies?: string[];
   experience?: { company?: string; title?: string; location?: string; dates?: string; bullets: string[] }[];
   key_projects?: { name?: string; description: string; tools?: string }[];
+  education?: { degree?: string; institution?: string; year?: string }[];
+  certifications?: { name?: string; issuer?: string; year?: string }[];
+  skill_groups?: { category?: string; items?: string[] }[];
+  additional_information?: string[];
 };
 // The structured cover letter behind a generated PDF. Only the wording is
 // editable; the name, contact line and credentials stay as generated.
@@ -454,10 +460,10 @@ export const api = {
     }>('/cover-letter/generate', { method: 'POST', body: tone ? { job_id, tone } : { job_id } }),
   getCv: (id: string) =>
     request<{ content: CvContent; pdf_url: string }>(`/jobs/${encodeURIComponent(id)}/cv`),
-  saveCv: (id: string, edits: CvEdits) =>
+  saveCv: (id: string, edits: CvEdits, allowExtraPage = false) =>
     request<{ pdf_url: string; page_count: number; content: CvContent; warnings: string[] }>(
       `/jobs/${encodeURIComponent(id)}/cv`,
-      { method: 'PUT', body: edits }
+      { method: 'PUT', body: allowExtraPage ? { ...edits, allow_extra_page: true } : edits }
     ),
   /** Proposes one honest CV line for a "what to change" item. Nothing is saved. */
   suggestCvLine: (id: string, suggestion: string) =>

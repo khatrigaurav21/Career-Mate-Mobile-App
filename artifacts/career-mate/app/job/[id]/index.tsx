@@ -7,44 +7,47 @@ import { getDocumentUrl } from '@/lib/api';
 import type { JobDetail, WorkRightsVerdict } from '@/lib/api';
 import { useColors } from '@/hooks/useColors';
 import { useDeleteJob } from '@/hooks/useDeleteJob';
-import { IconButton, Screen } from '@/components/ui';
+import { Button, IconButton, Screen } from '@/components/ui';
 import { JobGate } from '@/components/JobGate';
+import { ScoreRing } from '@/components/ScoreRing';
 import { ApplicationTracker } from '@/components/ApplicationTracker';
 import { InterviewPrepCard } from '@/components/InterviewPrep';
 import { findAdEmail } from '@/lib/adContact';
-import { useJobProgress } from '@/lib/jobProgress';
 import { type } from '@/constants/typography';
 
-const VERDICT_LINE: Record<WorkRightsVerdict, string> = {
-  eligible: 'You can take this role',
-  check: 'Check your visa conditions',
+const VERDICT_HEADLINE: Record<WorkRightsVerdict, string> = {
+  eligible: 'Yes, you can take this job',
+  check: 'Check your visa first',
   not_eligible: 'Not allowed on your visa',
-  unknown: 'Work rights not set',
+  unknown: 'Set your work rights to check',
 };
 
-// The job at a glance: the next thing to do, then one row per part of the
-// application. Each row opens its own short screen under /job/[id]/.
-export default function JobHub() {
-  return <JobGate>{(job, id) => <Hub job={job} id={id} />}</JobGate>;
+// The answer first: a big score ring, one line on whether you can take the job,
+// and one button for what to do next. Everything else sits below it.
+export default function JobResult() {
+  return <JobGate>{(job, id) => <Result job={job} id={id} />}</JobGate>;
 }
 
-function Hub({ job, id }: { job: JobDetail; id: string }) {
+function Result({ job, id }: { job: JobDetail; id: string }) {
   const colors = useColors();
   const { confirmDelete, isDeleting } = useDeleteJob();
   const cvUrl = getDocumentUrl(job, 'cv');
   const coverUrl = getDocumentUrl(job, 'cover');
   const verdict = (job.work_rights?.verdict ?? job.work_rights_verdict ?? 'unknown') as WorkRightsVerdict;
   const score = typeof job.score === 'number' ? job.score : null;
+  const applied = job.status !== 'evaluated';
 
-  // The rows keep their order. Finished steps turn green and the first
-  // unfinished one is highlighted; nothing moves.
-  const { seen } = useJobProgress(id);
-  const done = { verdict: seen.verdict, fit: seen.fit, cv: !!cvUrl, letter: !!coverUrl, questions: seen.questions };
-  const order = ['verdict', 'fit', 'cv', 'letter', 'questions'] as const;
-  const nextKey = order.find((k) => !done[k]) ?? null;
-  const stateOf = (k: (typeof order)[number]): RowState => (done[k] ? 'done' : k === nextKey ? 'next' : 'todo');
+  const ringColor = verdict === 'eligible' ? colors.success : verdict === 'check' ? colors.warning : verdict === 'not_eligible' ? colors.destructive : colors.primary;
 
-  // Offered only when the ad names an address and the visa check hasn't ruled the job out.
+  // One button that always moves the application forward.
+  const next = !cvUrl
+    ? { label: verdict === 'not_eligible' ? 'Start anyway' : 'Start application', to: `/job/${id}/cv` }
+    : !coverUrl
+      ? { label: 'Continue: cover letter', to: `/job/${id}/letter` }
+      : !applied
+        ? { label: 'Apply now', to: `/job/${id}/apply` }
+        : null;
+
   const adEmail = verdict !== 'not_eligible' && findAdEmail(typeof job.raw_description === 'string' ? job.raw_description : null);
 
   const go = (to: string) => {
@@ -65,51 +68,53 @@ function Hub({ job, id }: { job: JobDetail; id: string }) {
         </View>
       </View>
 
-      <View style={{ gap: 5, padding: 17, borderRadius: 22, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-          <Feather name="briefcase" size={16} color={colors.teal} />
-          <Text style={[type.bodySemibold, { color: colors.mutedForeground }]}>{job.company || 'Company not listed'}</Text>
-        </View>
-        <Text style={[type.headlineLg, { color: colors.navy }]}>{job.title || 'Untitled role'}</Text>
+      <View style={{ alignItems: 'center', gap: 6, paddingTop: 4 }}>
+        <Text style={[type.bodySemibold, { color: colors.mutedForeground, textAlign: 'center' }]}>{job.company || 'Company not listed'}</Text>
+        <Text accessibilityRole="header" style={[type.headlineLg, { color: colors.navy, textAlign: 'center' }]}>{job.title || 'Untitled role'}</Text>
       </View>
 
       {job.content_url ? <SourceNote url={job.content_url} /> : null}
 
+      <View style={{ alignItems: 'center', gap: 14, paddingVertical: 8 }}>
+        <ScoreRing score={score} color={ringColor} />
+        <Text style={[type.headlineLg, { color: ringColor, textAlign: 'center' }]}>{VERDICT_HEADLINE[verdict]}</Text>
+        {job.work_rights?.summary ? (
+          <Text style={[type.bodyMd, { color: colors.mutedForeground, textAlign: 'center', paddingHorizontal: 8 }]}>{job.work_rights.summary}</Text>
+        ) : null}
+      </View>
+
+      {next ? <Button onPress={() => go(next.to)} icon="arrow-right" style={{ minHeight: 58, borderRadius: 18 }}>{next.label}</Button> : null}
+
       <View style={{ gap: 10 }}>
-        <HubRow icon="shield" title="Can you take it?" sub={VERDICT_LINE[verdict]} state={stateOf('verdict')} onPress={() => go(`/job/${id}/verdict`)} />
-        <HubRow icon="target" title="Your fit" sub={score === null ? 'Still processing' : `${score.toFixed(1)} out of 5. Where you match and fall short`} state={stateOf('fit')} onPress={() => go(`/job/${id}/fit`)} />
-        <HubRow icon="file-text" title="Tailored CV" sub={cvUrl ? 'Ready. Edit or download' : 'Not made yet'} state={stateOf('cv')} onPress={() => go(`/job/${id}/cv`)} />
-        <HubRow icon="edit-3" title="Cover letter" sub={coverUrl ? 'Ready. Edit or download' : 'Not made yet'} state={stateOf('letter')} onPress={() => go(`/job/${id}/letter`)} />
-        <HubRow icon="message-circle" title="Application questions" sub="Paste a question, get an answer" state={stateOf('questions')} onPress={() => go(`/job/${id}/answers`)} />
-        <HubRow icon="send" title="Apply" sub={job.status === 'evaluated' ? 'Open the application with everything ready' : 'Marked as applied'} state={job.status !== 'evaluated' ? 'done' : nextKey === null ? 'next' : 'todo'} onPress={() => go(`/job/${id}/apply`)} />
-        {adEmail ? <HubRow icon="mail" title="Email in the ad" sub={`Send your application to ${adEmail}`} state="todo" onPress={() => go(`/job/${id}/email`)} /> : null}
+        <Row icon="help-circle" title="Why this score" sub="Where you match and where you fall short" onPress={() => go(`/job/${id}/verdict`)} />
+        {cvUrl ? <Row icon="file-text" title="Tailored CV" sub="Read it, add to it, download" done onPress={() => go(`/job/${id}/cv`)} /> : null}
+        {coverUrl ? <Row icon="edit-3" title="Cover letter" sub="Read it, add to it, download" done onPress={() => go(`/job/${id}/letter`)} /> : null}
+        {cvUrl && coverUrl ? <Row icon="send" title="Apply" sub={applied ? 'Marked as applied' : 'Open the application with everything ready'} done={applied} onPress={() => go(`/job/${id}/apply`)} /> : null}
+        <Row icon="message-circle" title="Application questions" sub="Paste a question, get an answer" onPress={() => go(`/job/${id}/answers`)} />
+        {adEmail ? <Row icon="mail" title="Email in the ad" sub={`Send your application to ${adEmail}`} onPress={() => go(`/job/${id}/email`)} /> : null}
       </View>
 
       <InterviewPrepCard job={job} />
       <ApplicationTracker job={job} />
 
-      <HubRow icon="list" title="Full report" sub="Every section of the evaluation" state="todo" onPress={() => go(`/job/${id}/details`)} />
+      <Row icon="list" title="Full report" sub="Every section of the evaluation" onPress={() => go(`/job/${id}/details`)} />
     </Screen>
   );
 }
 
-type RowState = 'done' | 'next' | 'todo';
-
-function HubRow({ icon, title, sub, onPress, state }: { icon: keyof typeof Feather.glyphMap; title: string; sub: string; onPress: () => void; state: RowState }) {
+function Row({ icon, title, sub, onPress, done = false }: { icon: keyof typeof Feather.glyphMap; title: string; sub: string; onPress: () => void; done?: boolean }) {
   const colors = useColors();
-  const done = state === 'done';
-  const next = state === 'next';
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${title}. ${sub}${done ? '. Done' : next ? '. Next' : ''}`}
+      accessibilityLabel={`${title}. ${sub}${done ? '. Done' : ''}`}
       style={({ pressed }) => ({
-        minHeight: 68,
+        minHeight: 64,
         borderRadius: 18,
         backgroundColor: done ? colors.successSoft : colors.card,
-        borderWidth: next ? 2 : 1,
-        borderColor: done ? colors.success : next ? colors.primary : colors.border,
+        borderWidth: 1,
+        borderColor: done ? colors.success : colors.border,
         paddingHorizontal: 14,
         flexDirection: 'row',
         alignItems: 'center',
@@ -117,20 +122,14 @@ function HubRow({ icon, title, sub, onPress, state }: { icon: keyof typeof Feath
         opacity: pressed ? 0.72 : 1,
       })}
     >
-      <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: done ? colors.success : next ? colors.primary : colors.muted, alignItems: 'center', justifyContent: 'center' }}>
-        <Feather name={done ? 'check' : icon} size={19} color={done || next ? colors.primaryForeground : colors.mutedForeground} />
+      <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: done ? colors.success : colors.muted, alignItems: 'center', justifyContent: 'center' }}>
+        <Feather name={done ? 'check' : icon} size={18} color={done ? colors.primaryForeground : colors.mutedForeground} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={[type.titleCard, { color: colors.navy }]}>{title}</Text>
         <Text style={[type.labelCaption, { color: done ? colors.success : colors.mutedForeground }]}>{sub}</Text>
       </View>
-      {next ? (
-        <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99, backgroundColor: colors.primary }}>
-          <Text style={[type.labelCaption, { color: colors.primaryForeground, fontFamily: 'PlusJakartaSans_700Bold' }]}>Next</Text>
-        </View>
-      ) : (
-        <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
-      )}
+      <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
     </Pressable>
   );
 }
